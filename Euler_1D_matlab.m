@@ -1,3 +1,4 @@
+% Serve solo per aprire le 5 figure e inserire nell'input_dialog i dati
 function input_dialog
 clear all
 close all
@@ -61,7 +62,7 @@ txt_tit4 = uicontrol('Style',...
     'Enable','on');
 bg_isch = uicontrol('Style',...
     'popup',...
-    'String',{'FDS-Osher'},... % you can add other stings ...
+    'String',{'FDS-Osher', 'AUSM+', 'AUSMPW'},... % you can add other stings ...
     'Position',[10 210 100 20],...
     'Visible','on',...
     'Enable','on');
@@ -488,8 +489,11 @@ if (pb_cont.Value == 0)
 nc = str2double(edit_NC.String);
 iord = str2double(edit_IORD.String);
 stab = str2double(edit_CFL.String);
-% Questa è la variabile che contiene lo schema di calcolo
-ischeme = bg_isch.Value; % 1-> PFD-Osher
+
+% Questa è la variabile che contiene il numero che identifica lo schema 
+% di calcolo:
+ischeme = bg_isch.Value; % 1 -> PFD-Osher, 2 -> AUSM+, 3 -> AUSMPW
+
 gamma = str2double(edit_Gamma.String);
 rhol = str2double(edit_rhoL.String);
 ul   = str2double(edit_uL.String);
@@ -497,6 +501,7 @@ pl   = str2double(edit_pL.String);
 rhor = str2double(edit_rhoR.String);
 ur   = str2double(edit_uR.String);
 pr   = str2double(edit_pR.String);
+
 % Posizione in cui vado a inserire la discontinuità
 x0   = str2double(edit_x0.String);
 

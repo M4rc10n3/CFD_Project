@@ -11,5 +11,6 @@ global x                                % era USE GEOM_VAR
       for n=1:nc
         x(n) = b + 0.5d0*dx + dx*(n-1);  % cell center position
       end
-          
+      % Dunque all'interno di x sono memorizzate le posizioni di tutti i
+      % centri di cella
 end

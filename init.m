@@ -13,8 +13,9 @@ global p t u s rho a e amach ptot ttot flow flht h htot % era USE VARS
 global w1 w2 w3 f1 f2 f3 phi1 phi2 phi3                    % era USE VARS
 global pxeno uxeno hxeno ppxeno hhxeno ppt ut hht  % era USE ENO
 
-%C     *** Initialize deg-rad conversion and gamma combinations ***
+%     *** Initialize deg-rad conversion and gamma combinations ***
 
+% Gamma è un dato di input visibile nella finestra di dialogo
 ga=gamma/(gamma-1.);
 gb=1.d0/(gamma-1.);
 gc=(gamma+1.)/(gamma-1.);
@@ -35,28 +36,34 @@ if itest == 1 % shock tube
    
     kout=ka;
     
+    % A partire dagli input calcoliamo le prime variabili in modo
+    % adimensionale
     timemax = 1.e6;
-    ratrho = rhol/rhor;
-    ratp   = pl/pr;
-    pmin   =1.;
-    rhomin =1.;
-    tmin   =pmin/rhomin;
+    ratrho = rhol/rhor; %Semplice rapporto delle densità
+    ratp   = pl/pr; %Semplice rapporto delle pressioni
+    pmin   =1.; %Pressione di riferimento
+    rhomin =1.; %Densità di riferimento
+    tmin   =pmin/rhomin; %Temperatura di riferimento
     umin   = 0.0; % La corrente è ferma, dunque la velocità è 0
     pmax   =pmin*ratp;
     rhomax =rhomin*ratrho;
     tmax   =pmax/rhomax;
     umax   = 0.0;
-    %Velocità suono, numero di Mach, entropia, energia interna, entalpia, 
+
+    % Dopo calcoliamo anche le altre variabili che ci servono.
+    % Velocità suono, numero di Mach, entropia, energia interna, entalpia, 
     % pressione totale, temperatura totale
-    %Tutte le variabili sono normalizzate rispetto alle quantità di
-    %riferimento
+    % Tutte le variabili sono normalizzate rispetto alle quantità di
+    % riferimento
     [amin,achmin,smin,emin,hmin,ptotmin,ttotmin] = calc_other_vars(pmin,rhomin,tmin,umin);
     [amax,achmax,smax,emax,hmax,ptotmax,ttotmax] = calc_other_vars(pmax,rhomax,tmax,umax);
     
     ncm = nc-1; %nc è il numero di celle
     nhigh = nc/2+1; % Primo punto a destra della discontinuità
     diverg = 1.;
-    grid(); % Crea la mesh computazionale
+    grid(); % Crea la mesh computazionale, ovvero crea il vettore x  
+    % in cui sono memorizzate le posizioni di tutti i centri di cella
+
     % call allocate_vars
     p(nhigh:nc)   = pmin;
     rho(nhigh:nc) = rhomin;
@@ -66,17 +73,19 @@ if itest == 1 % shock tube
     t(1:nhigh-1)   = tmax;
     u(1:nc)     = 0.0;
     
-    % Prende come input anche vettori per darne in output
+    % "calc_other_vars" prende come input anche vettori per ridarne in
+    % output:
     [a,amach,s,e,h,ptot,ttot] = calc_other_vars(p,rho,t,u);
-    [w1,w2,w3] = calc_cons(rho,u,e); % Calcola le variabili conservative
-    [f1,f2,f3] = calc_fluxes(rho,u,p,e);
+    [w1,w2,w3] = calc_cons(rho,u,e); % Calcola le variabili 
+    % conservative -> presentazione 3 del corso
+    [f1,f2,f3] = calc_fluxes(rho,u,p,e); % Calcola le variabili di flusso
     flow = f1;
     flht = f3;
     
 elseif itest >=2 % GENERAL RIEMANN PROBLEMS
     
-    tl = pl/rhol;
-    tr = pr/rhor;
+    tl = pl/rhol; %Temperatura a sinistra
+    tr = pr/rhor; %Temperatura a destra
     
     [al,achl,sl,el,hl,ptotl,ttotl] = calc_other_vars(pl,rhol,tl,ul);
     [ar,achr,sr,er,hr,ptotr,ttotr] = calc_other_vars(pr,rhor,tr,ur);
