@@ -206,7 +206,7 @@ for n=2:ncmm
         a_n = min(a_tilde_a,a_tilde_b);
         Ma = ua/a_n;
         Mb = ub/a_n;
-        
+
         if abs(Ma) >= 1 % valori di beta ottimale già settato a 1/8, alpha a 3/16
             M_cors_plus = 0.5*(Ma+abs(Ma));
             P_cors_plus = 0.5*(1+sign(Ma));
@@ -241,13 +241,13 @@ if(itest == 1)  %REFLECTING WALL B.C.
     pin    = r1dum;
     uin    = 0.0;
     hin    = r2dum+pin/rho002;
-    [phi1(1),phi2(1),phi3(1)] = decod(pin,uin,hin);
+    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
     r3dum  = pncm+rhoncm*ancm*uncm;
     r2dum  = hncm-pncm/rhoncm;
     pex    = r3dum;
     uex    = 0.0;
     hex    = r2dum+pex/rhoncm;
-    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod(pex,uex,hex);
+    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
 end
 
 % if(itest >= 2)  % REFLECTING WALL B.C.
