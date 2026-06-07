@@ -6,13 +6,17 @@ rhoa = gamma*pa/aa^2;
 capaa = 1.0/ge/rhoa;
 rhob = gamma*pb/ab^2;
 capab = 1.0/ge/rhob;
+
+%Booleani che servono per capire se a sinistra e destra vi è un'onda d'urto
+%o un'espansione
 elold = false;
 erold = false;
-el    = true;
-er    = true;
+el    = true; 
+er    = true; 
+
 pold = 0.5*(pa+pb);
 
-while ((el ~= elold) || (er ~= erold)) % "|" è l' "or"
+while ((el ~= elold) || (er ~= erold)) % "|" è l' "or" di MatLab
     elold = el;
     erold = er;
     it = 0;
@@ -28,6 +32,8 @@ while ((el ~= elold) || (er ~= erold)) % "|" è l' "or"
         % Si usa un metodo tra i 4 tipi di problemi di Riemann che
         % possono verificarsi a seconda dei valori di "el" e "er".
         if (el && er)
+            %fs e fe stanno per "funzione shock" e "funzione espansione",
+            %si trovano a riga 112
             fp = fel(pp,ua,aa,pa)      - fer(pp,ub,ab,pb);
             fm = fel(pm,ua,aa,pa)      - fer(pm,ub,ab,pb);
             f = fel(pold,ua,aa,pa)     - fer(pold,ub,ab,pb);
@@ -36,8 +42,6 @@ while ((el ~= elold) || (er ~= erold)) % "|" è l' "or"
             fm = fel(pm,ua,aa,pa)      - fsr(pm,ub,capab,pb);
             f  = fel(pold,ua,aa,pa)    - fsr(pold,ub,capab,pb);
         elseif (er)
-            % fs funzione shock, si trova più in basso
-            % fe funzione espansione
             fp = fsl(pp,ua,aa,pa)      - fer(pp,ub,ab,pb);
             fm = fsl(pm,ua,capaa,pa)   - fer(pm,ub,ab,pb);
             f  = fsl(pold,ua,capaa,pa) - fer(pold,ub,ab,pb);
@@ -78,6 +82,7 @@ while ((el ~= elold) || (er ~= erold)) % "|" è l' "or"
     elseif (~er)
         rhod = rhob*(1.0/gc+pd/pb)/(pd/pb/gc+1.0);
     end
+
     % Ora si fa un controllo sui valori trovati; se non è soddisfatto, sono cambiati 
     % i valori di "el" e "er" e il "while" continua.
     ac = sqrt(gamma*pc/rhoc);
@@ -105,23 +110,24 @@ while ((el ~= elold) || (er ~= erold)) % "|" è l' "or"
 
     pold = pc;
 end
-
-    function fel = fel(p,ua,aa,pa)
+    %Le prossime funzioni provengono da pag. 29, 30 e 31 della
+    %presentazione 6 del corso.
+    function fel = fel(p,ua,aa,pa) %Across a left rarefaction
         %      use pigamma_par
         fel = ua - gg*aa*((p/pa)^gi-1.0);
     end
 
-    function fer = fer(p,ub,ab,pb)
+    function fer = fer(p,ub,ab,pb) %Across the right rarefaction
         %      use pigamma_par
         fer = ub + gg*ab*((p/pb)^gi-1.0);
     end
 
-    function fsl = fsl(p,ua,capaa,pa)
+    function fsl = fsl(p,ua,capaa,pa) %Across a left shock
         %      use pigamma_par
         fsl = ua - (p-pa)*sqrt(capaa/(p+pa/gc));
     end
 
-    function fsr = fsr(p,ub,capab,pb)
+    function fsr = fsr(p,ub,capab,pb) %Across a right shock
         %      use pigamma_par
         fsr = ub + (p-pb)*sqrt(capab/(p+pb/gc));
     end

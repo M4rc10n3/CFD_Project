@@ -552,6 +552,7 @@ figure(fig_tem)
 plot(x,t,'o-')
 end
 
+% Si esegue se si schiaccia su "Continue"
 if (pb_cont.Value == 1)
     ka = str2double(edit_ka.String);
     if (pop_test.Value == 2)
@@ -589,10 +590,13 @@ txt_stepcounter2.String = kk;
 tt=sprintf('%.6f',time);
 txt_time2.String = tt;    
 
-    if (iord == 2)  % se si è scelto di fare 2nd order, allora calcolo pendenze e derivate temporali in eno1
+    if (iord == 2)  % se si è scelto di fare 2nd order, 
+        % allora calcolo pendenze e derivate temporali in eno1
         eno1()
-    end    
-    split(); % Flux Difference Splitting
+    end
+
+    split_ausm_plus2()
+    % split(); % Flux Difference Splitting -> Algoritmo da cambiare
     march(); % Aggiorno le variabili
     
     if (itest == 1)
@@ -600,7 +604,7 @@ txt_time2.String = tt;
         sum2=mean(w2) + (p(nc)-p(1))*time;
         sum3=mean(w3);
         
-        fprintf('K=%i - sum1=%f - sum2=%f - sum3=%f',k,sum1,sum2,sum3);
+        fprintf('K=%i - sum1=%f - sum2=%f - sum3=%f \n',k,sum1,sum2,sum3);
     end
 
 % Si crea il disegno
@@ -624,8 +628,8 @@ hold off
 plot(x,t,'o-')
 hold on
 
-    %      CALL GNUPLOT
-    %       costruire routine per output dati e visualizzazione
+%      CALL GNUPLOT
+%       costruire routine per output dati e visualizzazione
 
 % Si valuta anche la soluzione teorica
 thesol(timek(k),utha,uthb,uthc,uthd,ptha,pthb,pthc,pthd,atha,athb,athc,athd,rhotha,rhothb,rhothc,rhothd,stha,sthb,sthc,sthd,alama,alamb,alamc,alamd,alamx,vshl,vshr,el,er);

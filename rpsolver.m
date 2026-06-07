@@ -35,17 +35,20 @@ uthb=u(nc-1);
 sthb=s(nc-1);
 alama = 0.0; % (u-a)_a  % sono le caratteristiche lambda delle varie zone "a, b, c, d" del piano delle fasi
 % Il piano delle fasi di cui si parla è quello con i fasci di espansione,
-% la superficie di contatto e, appunto, la divisione in zone.
+% la superficie di contatto è, appunto, la divisione in zone.
 alamb = 0.0; % (u+a)_b
 alamc = 0.0; % (u-a)_c
 alamd = 0.0; % (u+a)_d
-% Non è calcollata la "lambda" della superficie di contatto
+% Non è calcolata la "lambda" della superficie di contatto
 
 % Una volta che si è capito il tipo del problema di Riemann, si possono
 % trovare queste quantità (una sola delle due, sono quantità eventuali):
 vshl = 0.0; % shock speed (fam. I)
 vshr = 0.0; % shock speed (fam. III)
 
+%Risolviamo prima il problema di Riemann esatto per trovare i valori nelle
+%zone c e d e per capire se a sinistra e destra ci sono onde d'urto o
+%fasci di espansione
 [pcd,ucd,rhothc,rhothd,el,er] = riemexact(atha,athb,ptha,pthb,utha,uthb);
 
 pthc = pcd;
@@ -65,10 +68,11 @@ else
     if (rhothc-rhotha) == 0.0 % evanescent shock wave
         vshl = 0.0;
     else
-        % Si calcola la velocità della propagazione della discontinuità
+        % Si calcola la velocità della propagazione della discontinuità di
+        % sinistra
         vshl = (rhothc*uthc-rhotha*utha)/(rhothc-rhotha);
     end
-    % Si calcola anche l'entropia
+    % Si calcola anche l'entropia della zona c
     sthc = log(pthc)-gamma*log(rhothc);
 end
 if (er)
@@ -84,5 +88,6 @@ else
     sthd = log(pthd)-gamma*log(rhothd);
 end
 
+% "Lambda" della superficie di contatto pari  alla velocità della zona c
 alamx=uthc;
 end

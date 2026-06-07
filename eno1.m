@@ -15,9 +15,9 @@ ncmm =nc-2;
 ncmmm=nc-3;
 
 for n=3:ncmm
-    nm1=n-1;
-    n00=n;
-    np1=n+1;
+    nm1=n-1; %Indice precedente
+    n00=n; %Indice attuale
+    np1=n+1; %Indice successivo
     
     %       ppxp=log(p(np1))-log(p(n00))
     %       ppxm=log(p(n00))-log(p(nm1))
@@ -33,8 +33,12 @@ for n=3:ncmm
     
     %n00 punto centrale; np1 punto a destra; nm1 punto a sinistra di n00
     goa    = gamma/a(n00);
-    r1xp   = (log(p(np1))-goa*u(np1))-(log(p(n00))-goa*u(n00)); %p sta per "più" (+)
-    r1xm   = (log(p(n00))-goa*u(n00))-(log(p(nm1))-goa*u(nm1)); %m sta per "meno" (-)
+    r1xp   = (log(p(np1))-goa*u(np1))-(log(p(n00))-goa*u(n00)); %p sta per "più" (+) ->
+    %valori in np1 meno valori in n00
+
+    r1xm   = (log(p(n00))-goa*u(n00))-(log(p(nm1))-goa*u(nm1)); %m sta per "meno" (-) ->
+    %valori in n00 meno valori in nm1
+
     r1xdum = minmod(r1xp,r1xm); %operatore limite
     
     r2xp   = (log(h(np1))-gj*log(p(np1)))-(log(h(n00))-gj*log(p(n00)));
@@ -77,18 +81,21 @@ ppxeno(n)= log(p(ncm))-log(p(ncmm));
 uxeno(n) = u(ncm)-u(ncmm);
 hhxeno(n)= log(h(ncm))-log(h(ncmm));
 
-%Per le derivate temporali, esse vengono calcolate dalle pendenze (le
-%derivate spaziali)
+% Le derivate temporali vengono calcolate a partire dalle pendenze, che sono 
+% le derivate spaziali.
 for n=2:ncm
     ppt(n) = -(u(n)*ppxeno(n)+gamma*uxeno(n));
     ut(n)  = -(u(n)*uxeno(n)+t(n)*ppxeno(n));
     hht(n) =   ppt(n)/ga - u(n)*(hhxeno(n)-ppxeno(n)/ga);
 end
-for n=2:ncm
-    pptt(n) = 0.0;
-    utt(n)  = 0.0;
-    hhtt(n) = 0.0;
-end
+
+%Pezzo di codice che non serve a nulla 
+
+% for n=2:ncm
+%    pptt(n) = 0.0;
+%    utt(n)  = 0.0;
+%    hhtt(n) = 0.0;
+%end
 
 end
 

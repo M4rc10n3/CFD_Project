@@ -76,7 +76,7 @@ for n = 2:ncmm
     Mb = ub/ab;
 
     % -------------------------------------------------
-    % 4. Speed of sound interfacciale (AUSM+ robusto)
+    % 4. Velocità del suono all'interfaccia (AUSM+ robusto)
     % -------------------------------------------------
     a_star_a = sqrt(((gamma+1)/2) * (pa/rhoa + 0.5*ua^2));
     a_star_b = sqrt(((gamma+1)/2) * (pb/rhob + 0.5*ub^2));

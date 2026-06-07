@@ -1,8 +1,8 @@
 function split
 
 %Input e output di questa fuznione sono tutte queste variabili che passiamo
-%tra le funzioni che hanno queste righe come introduzione. In particolare,
-%a noi interessano p,u e h
+%tra le funzioni che hanno queste righe come introduzione. 
+% In particolare, a noi interessano p,u e h
 global gamma ga gb gc gd ge gf gg gh gi gj % era USE PIgamma_PAR
 global nc ncm k kout ka iord itest stab % era USE NUM_PAR
 global b c diverg c1 c2 x0 dx                     % era USE GEOM_PAR
@@ -23,7 +23,7 @@ for n=2:ncmm
 
     % Prendiamo in considerazione la cella n-esima e quella successiva
     nm=n;
-    np=nm+1;%=n+1
+    np=nm+1; % np=n+1
     
     %Potremmo non dover calcolare p, u e h
     pa  =  p(nm);
@@ -51,11 +51,14 @@ for n=2:ncmm
     end
     
     if iord ~= 1  % si usa quando l'ordine è 2
-        %Si fa un cambio di variabile passando ai logaritmi
+
+        %Si fa un cambio di variabile passando ai logaritmi per evitare che
+        %le variabili diventino negative
         ppa = log(pa);
         ppb = log(pb);
         hha = log(ha);
         hhb = log(hb);
+
         %Calcolo le grandezze alle interfacce delle celle
         ppa  =  ppa + .5* ppxeno(n);
         ppb  =  ppb - .5* ppxeno(n+1);
@@ -63,6 +66,7 @@ for n=2:ncmm
         ub   =  ub  - .5* uxeno(n+1);
         hha  =  hha + .5* hhxeno(n);
         hhb  =  hhb - .5* hhxeno(n+1);
+
         %Aggiungo anche le derivate temporali
         ppa = ppa + enuo2*ppt(nm);
         ua  = ua  + enuo2*ut(nm);
@@ -116,6 +120,7 @@ for n=2:ncmm
     aa   = sqrt(gamma*pa/rhoa);
     ab   = sqrt(gamma*pb/rhob);
     
+    % Variabile che dà errore nel caso in cui qualcosa diventi negativo
     icalc=0;
     
     r3a=pa+(rhoa*aa)*ua;
@@ -135,6 +140,8 @@ for n=2:ncmm
         icalc=1;
     end
     
+    % Per evitare che l'algoritmo salti, calcoliamo tutto attraverso i
+    % logaritmi.
     if icalc == 1
         ppa = log(pa);
         ppb = log(pb);
@@ -159,7 +166,7 @@ for n=2:ncmm
     
     ac = sqrt(2.0*gd*hc);
     ad = sqrt(2.0*gd*hd);
-    ala=ua-aa;
+    ala=ua-aa; %lambda_1 nella zona a
     alc=uc-ac;
     ald=ud+ad;
     alb=ub+ab;
@@ -180,10 +187,11 @@ for n=2:ncmm
     df2l = 0.0;
     df3l = 0.0;
     
-    if (alx >=0) % c/d
+    if (alx >=0) % c/d -> Inclinazione superficie di contatto tra zona c 
+        % e zona d
         alam2r = 1.0;
         alam2l = 0.0;
-    else         % c\d
+    else % c\d
         alam2r = 0.0;
         alam2l = 1.0;
     end
@@ -220,13 +228,14 @@ for n=2:ncmm
         if (icalc == 1)
             adum = 2.0*aa/gdgd^1.5;
             bdum = aa/gamma/sqrt(gdgd)*(r3a+ga*r2a);
-            iterstar (adum,bdum,cdum)
+            iterstar(adum,bdum,cdum);
             ast = sqrt(gdgd)*cdum;
             ust = ast;
             hst = gb*ast^2;
             pst= exp((log(hst)-r2a)*ga);
         end
         [f1st,f2st,f3st] = decod(pst,ust,hst);
+
         if (ala <=0) % a\*/c
             df1r = df1r + (f1c-f1st);
             df2r = df2r + (f2c-f2st);
@@ -293,10 +302,15 @@ for n=2:ncmm
             df3r = df3r + (f3st-f3d);
         end
     end
+
+    %Queste sono la variabili che poi si usano per aggiornare le variabili
+    %nel file march.m:
     phi1(n)=f1a+df1l;
     phi2(n)=f2a+df2l;
     phi3(n)=f3a+df3l;
+
 end % end of the do loop
+
 if(itest == 1)  %REFLECTING WALL B.C.
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;

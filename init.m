@@ -58,7 +58,7 @@ if itest == 1 % shock tube
     [amin,achmin,smin,emin,hmin,ptotmin,ttotmin] = calc_other_vars(pmin,rhomin,tmin,umin);
     [amax,achmax,smax,emax,hmax,ptotmax,ttotmax] = calc_other_vars(pmax,rhomax,tmax,umax);
     
-    ncm = nc-1; %nc è il numero di celle
+    ncm = nc-1; %nc è il numero di celle => ncm è il numero di interfacce
     nhigh = nc/2+1; % Primo punto a destra della discontinuità
     diverg = 1.;
     grid(); % Crea la mesh computazionale, ovvero crea il vettore x  

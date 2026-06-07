@@ -1,4 +1,4 @@
-function split
+function split_ausm_plus2
 
 global gamma ga gb gc gd ge gf gg gh gi gj % era USE PIgamma_PAR
 global nc ncm k kout ka iord itest stab % era USE NUM_PAR
@@ -12,6 +12,11 @@ global w1 w2 w3 f1 f2 f3 phi1 phi2 phi3                    % era USE VARS
 global pxeno uxeno hxeno ppxeno hhxeno ppt ut hht % era USE ENO
 
 enuo2 = 0.5*dt/dx;
+%Variabili: 
+% ncm: è il numero totale delle interfacce = n.celle-1 =nc-1
+% ncmm: è il numero di iterazioni da compiere perché all'iterazione ncmm ci
+% occupiamo anche dell'interfaccia ncmm+1=ncm, che è la sinistra
+% dell'ultima cella
 
 ncmm = ncm-1;
 for n=2:ncmm
@@ -34,13 +39,20 @@ for n=2:ncmm
 
         % Nota: sx = dx, cioè pa = pb = p002, etc.
 
+        %Entalpia specifica totale
         h_t002 = h002+u002^2/2;
         
-        a_starL002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
-        a_starR002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
-        a_tildeL002 = a_starL002^2/max(a_starL002,abs(u002));
-        a_tildeR002 = a_starR002^2/max(a_starR002,abs(ub));
-        a002 = min(a_tildeR002,a_tildeL002);
+        %In questo caso non necessario calcolare entrambi i valori
+        %a_starL002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
+        %a_starR002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
+        %a_tildeL002 = a_starL002^2/max(a_starL002,abs(u002)); %u002 = ua
+        %a_tildeR002 = a_starR002^2/max(a_starR002,abs(ub));
+        %a002 = min(a_tildeR002,a_tildeL002);
+
+        a_star002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
+        % In questo caso ignoriamo il calcolo di a_tilde poiché 
+        % a002 = a_tilde002
+        a002 = a_star002^2/max(a_star002,abs(u002)); 
         M002 = u002/a002;
         
         if abs(M002) >= 1 
@@ -50,7 +62,8 @@ for n=2:ncmm
             M_cors_minus = 0.5*(M002-abs(M002));
             P_cors_minus = 0.5*(1-sign(M002));
         else  % valori ottimali già settati beta=1/8, alpha=3/16
-            M_cors_plus = 0.5*(M002+1)^2 + (1/8)*(M002^2-1)^2;
+            %Quando implementeremo AUSMPW, qua mettere 0,25 al posto di 0,5
+            M_cors_plus = 0.5*(M002+1)^2 + (1/8)*(M002^2-1)^2; 
             P_cors_plus = 0.25*(M002+1)^2*(2-M002) + (3/16)*M002*(M002^2-1)^2;
 
             M_cors_minus = -0.5*(M002-1)^2 - (1/8)*(M002^2-1)^2;
