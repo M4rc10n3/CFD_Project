@@ -232,10 +232,13 @@ for n=2:ncmm
     % A3
     phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
     phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
+    %Dopo aver trovato phi3 cercare di tornare alla terza vecchia componente di
+    %flusso
     phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
 end % end of the do loop
 
 if(itest == 1)  %REFLECTING WALL B.C.
+    %%DA RIVEDERE
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;
     pin    = r1dum;
@@ -266,6 +269,7 @@ end
 % end
 
 if(itest >= 2)  % REFLECTING WALL B.C.
+    %%DA RIVEDERE
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;
     ain    = a002;
