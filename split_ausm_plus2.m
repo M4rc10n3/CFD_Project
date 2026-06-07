@@ -62,7 +62,8 @@ for n=2:ncmm
             M_cors_minus = 0.5*(M002-abs(M002));
             P_cors_minus = 0.5*(1-sign(M002));
         else  % valori ottimali già settati beta=1/8, alpha=3/16
-            %Quando implementeremo AUSMPW, qua mettere 0,25 al posto di 0,5
+            %Quando implementeremo AUSMPW, dentro M_cors_plus/minus 
+            %mettere 0.25 al posto di 0.5
             M_cors_plus = 0.5*(M002+1)^2 + (1/8)*(M002^2-1)^2; 
             P_cors_plus = 0.25*(M002+1)^2*(2-M002) + (3/16)*M002*(M002^2-1)^2;
 
@@ -91,12 +92,15 @@ for n=2:ncmm
 
         % Nota: sx = dx, cioè pa = pb = pncm, etc.
         h_tncm = hncm+uncm^2/2;
-
-        a_starLncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
-        a_starRncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
-        a_tildeLncm = a_starLncm^2/max(a_starLncm,abs(uncm));
-        a_tildeRncm = a_starRncm^2/max(a_starRncm,abs(uncm));
-        ancm = min(a_tildeRncm,a_tildeLncm);
+        
+        %Idem come sopra: non è necessario calcolare entrambi i valori.
+        %a_starLncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
+        %a_starRncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
+        a_starncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
+        %a_tildeLncm = a_starLncm^2/max(a_starLncm,abs(uncm));
+        %a_tildeRncm = a_starRncm^2/max(a_starRncm,abs(uncm));
+        %ancm = min(a_tildeRncm,a_tildeLncm);
+        ancm = a_starncm^2/max(a_starncm,abs(uncm));
         Mncm = uncm/ancm;
         
         if abs(Mncm) >= 1 
