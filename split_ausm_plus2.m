@@ -187,26 +187,26 @@ for n=2:ncmm
         hb = exp(hhb);
     end
     
-    % calcolo sul paper usando pa per a_j e pb per a_j+1
-    rhoa = pa/ha*ga;
-    rhob = pb/hb*ga;
-    %aa  = sqrt(gamma*pa/rhoa);
-    %ab  = sqrt(gamma*pb/rhob);
-    % Ma  = ua/aa;
-    % Mb  = ub/ab;
-
-    h_ta = ha+ua^2/2;
-    h_tb = hb+ub^2/2;
-    
-    a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
-    a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);
-    a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
-    a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
-    a_n = min(a_tilde_a,a_tilde_b);
-    Ma = ua/a_n;
-    Mb = ub/a_n;
-
     if n > 2 && n < ncmm
+        % calcolo sul paper usando pa per a_j e pb per a_j+1
+        rhoa = pa/ha*ga;
+        rhob = pb/hb*ga;
+        %aa  = sqrt(gamma*pa/rhoa);
+        %ab  = sqrt(gamma*pb/rhob);
+        %Ma  = ua/aa;
+        %Mb  = ub/ab;
+    
+        h_ta = ha+ua^2/2;
+        h_tb = hb+ub^2/2;
+        
+        a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
+        a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);
+        a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
+        a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
+        a_n = min(a_tilde_a,a_tilde_b);
+        Ma = ua/a_n;
+        Mb = ub/a_n;
+        
         if abs(Ma) >= 1 % valori di beta ottimale già settato a 1/8, alpha a 3/16
             M_cors_plus = 0.5*(Ma+abs(Ma));
             P_cors_plus = 0.5*(1+sign(Ma));
