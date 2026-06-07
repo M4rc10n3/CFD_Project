@@ -77,7 +77,7 @@ for n=2:ncmm
         m_plus002 = 0.5*(m002+abs(m002));
         m_minus002 = 0.5*(m002-abs(m002));
 
-        a_n = a002;
+        %a_n = a002;
         m_n_plus = m_plus002;
         m_n_minus = m_minus002;
         p_n = p002;
@@ -123,7 +123,7 @@ for n=2:ncmm
         m_plusncm = 0.5*(mncm+abs(mncm));
         m_minusncm = 0.5*(mncm-abs(mncm));
         
-        a_n = ancm;
+        %a_n = ancm;
         m_n_plus = m_plusncm;
         m_n_minus = m_minusncm;
         p_n = pncm;
@@ -187,38 +187,11 @@ for n=2:ncmm
         hb = exp(hhb);
     end
     
+    % calcolo sul paper usando pa per a_j e pb per a_j+1
     rhoa = pa/ha*ga;
     rhob = pb/hb*ga;
-    aa   = sqrt(gamma*pa/rhoa);
-    ab   = sqrt(gamma*pb/rhob);
-    
-    icalc=0;
-    
-    r3a=pa+(rhoa*aa)*ua;
-    r2a=ha-pa/rhoa;
-    r2b=hb-pb/rhob;
-    r1b=pb-(rhob*ab)*ub;
-    
-  
-    
-    if icalc == 1
-        ppa = log(pa);
-        ppb = log(pb);
-        hha = log(ha);
-        hhb = log(hb);
-        r3a = ppa + gamma/aa*ua;
-        r2a = hha-ppa/ga;
-        r2b = hhb-ppb/ga;
-        r1b = ppb-gamma/ab*ub;
-              
-        fprintf('warning icalc=1 at k=%i and n=%i',k,n)
-    end
-    
-    % calcolo sul paper usando pa per a_j e pb per a_j+1
-    rhoa = pa/ha*ga;  
-    rhob = pb/hb*ga;
-    % aa  = sqrt(gamma*pa/rhoa);
-    % ab  = sqrt(gamma*pb/rhob);
+    %aa  = sqrt(gamma*pa/rhoa);
+    %ab  = sqrt(gamma*pb/rhob);
     % Ma  = ua/aa;
     % Mb  = ub/ab;
 
