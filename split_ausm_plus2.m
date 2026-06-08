@@ -12,6 +12,7 @@ global w1 w2 w3 f1 f2 f3 phi1 phi2 phi3                    % era USE VARS
 global pxeno uxeno hxeno ppxeno hhxeno ppt ut hht % era USE ENO
 
 enuo2 = 0.5*dt/dx;
+
 %Variabili: 
 % ncm: è il numero totale delle interfacce = n.celle-1 =nc-1
 % ncmm: è il numero di iterazioni da compiere perché all'iterazione ncmm ci
@@ -30,12 +31,32 @@ for n=2:ncmm
     ha = h(nm);
     hb = h(np);
     
+    % Le condizioni al bordo qui sotto servono poi per i calcoli 
+    % da riga 240 in poi; da capire quali implementare
+    %% Condizioni al bordo di D'Ambrosio
+    if n == 2
+        p002   =  pa;
+        u002   =  ua;
+        h002   =  ha;
+        rho002 =  p002/h002*ga;
+        a002   =  sqrt(gamma*p002/rho002);
+    end
+    
+    if n == ncmm
+        pncm   =  pb;
+        uncm   =  ub;
+        hncm   =  hb;
+        rhoncm =  pncm/hncm*ga;
+        ancm   =  sqrt(gamma*pncm/rhoncm);
+    end
+
+    %% Condizioni al bordo nostre
+    %{
     if n == 2
         p002   = pa; 
         u002   = ua;
         h002   = ha;
         rho002 = p002/h002*ga;
-        % a002   = sqrt(gamma*p002/rho002);
 
         % Nota: sx = dx, cioè pa = pb = p002, etc.
 
@@ -62,12 +83,10 @@ for n=2:ncmm
             M_cors_minus = 0.5*(M002-abs(M002));
             P_cors_minus = 0.5*(1-sign(M002));
         else  % valori ottimali già settati beta=1/8, alpha=3/16
-            %Quando implementeremo AUSMPW, dentro M_cors_plus/minus 
-            %mettere 0.25 al posto di 0.5
-            M_cors_plus = 0.5*(M002+1)^2 + (1/8)*(M002^2-1)^2; 
+            M_cors_plus = 0.25*(M002+1)^2 + (1/8)*(M002^2-1)^2; 
             P_cors_plus = 0.25*(M002+1)^2*(2-M002) + (3/16)*M002*(M002^2-1)^2;
 
-            M_cors_minus = -0.5*(M002-1)^2 - (1/8)*(M002^2-1)^2;
+            M_cors_minus = -0.25*(M002-1)^2 - (1/8)*(M002^2-1)^2;
             P_cors_minus = 0.25*(M002-1)^2*(2+M002) - (3/16)*M002*(M002^2-1)^2;
         end
 
@@ -110,10 +129,10 @@ for n=2:ncmm
             M_cors_minus = 0.5*(Mncm-abs(Mncm));
             P_cors_minus = 0.5*(1-sign(Mncm));
         else  % valori ottimali già settati beta=1/8, alpha=3/16
-            M_cors_plus = 0.5*(Mncm+1)^2 + (1/8)*(Mncm^2-1)^2;
+            M_cors_plus = 0.25*(Mncm+1)^2 + (1/8)*(Mncm^2-1)^2;
             P_cors_plus = 0.25*(Mncm+1)^2*(2-Mncm) + (3/16)*Mncm*(Mncm^2-1)^2;
 
-            M_cors_minus = -0.5*(Mncm-1)^2 - (1/8)*(Mncm^2-1)^2;
+            M_cors_minus = -0.25*(Mncm-1)^2 - (1/8)*(Mncm^2-1)^2;
             P_cors_minus = 0.25*(Mncm-1)^2*(2+Mncm) - (3/16)*Mncm*(Mncm^2-1)^2;
         end
 
@@ -128,7 +147,9 @@ for n=2:ncmm
         m_n_minus = m_minusncm;
         p_n = pncm;
     end
-    
+    %}
+
+    %% Per aumentare l'ordine dell'algoritmo
     if iord ~= 1
         ppa = log(pa);
         ppb = log(pb);
@@ -187,31 +208,32 @@ for n=2:ncmm
         hb = exp(hhb);
     end
     
+    %% Tutte le interfacce che non sono la seconda o la penultima
     if n > 2 && n < ncmm
+
         % calcolo sul paper usando pa per a_j e pb per a_j+1
         rhoa = pa/ha*ga;
         rhob = pb/hb*ga;
-        %aa  = sqrt(gamma*pa/rhoa);
-        %ab  = sqrt(gamma*pb/rhob);
-        %Ma  = ua/aa;
-        %Mb  = ub/ab;
     
         h_ta = ha+ua^2/2;
         h_tb = hb+ub^2/2;
         
         a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
         a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);
+
         a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
         a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
+
         a_n = min(a_tilde_a,a_tilde_b);
+
         Ma = ua/a_n;
         Mb = ub/a_n;
 
-        if abs(Ma) >= 1 % valori di beta ottimale già settato a 1/8, alpha a 3/16
+        if abs(Ma) >= 1 % valori ottimali già settati beta=1/8, alpha=3/16
             M_cors_plus = 0.5*(Ma+abs(Ma));
             P_cors_plus = 0.5*(1+sign(Ma));
         else
-            M_cors_plus = 0.5*(Ma+1)^2 + (1/8)*(Ma^2-1)^2;
+            M_cors_plus = 0.25*(Ma+1)^2 + (1/8)*(Ma^2-1)^2;
             P_cors_plus = 0.25*(Ma+1)^2*(2-Ma) + (3/16)*Ma*(Ma^2-1)^2;
         end
 
@@ -219,7 +241,7 @@ for n=2:ncmm
             M_cors_minus = 0.5*(Mb-abs(Mb));
             P_cors_minus = 0.5*(1-sign(Mb));
         else
-            M_cors_minus = -0.5*(Mb-1)^2 - (1/8)*(Mb^2-1)^2;
+            M_cors_minus = -0.25*(Mb-1)^2 - (1/8)*(Mb^2-1)^2;
             P_cors_minus = 0.25*(Mb-1)^2*(2+Mb) - (3/16)*Mb*(Mb^2-1)^2;
         end
     
@@ -227,18 +249,27 @@ for n=2:ncmm
         p_n = P_cors_plus*pa + P_cors_minus*pb;
         m_n_plus = 0.5*(m_n+abs(m_n));
         m_n_minus = 0.5*(m_n-abs(m_n));
-    end
     
-    % A3
+    % Formula A3 del paper scomposta nelle 3 componenti:
     phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
     phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
-    %Dopo aver trovato phi3 cercare di tornare alla terza vecchia componente di
-    %flusso
     phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
-end % end of the do loop
+    
+    end
 
+    %{ 
+    Dopo aver calcolato questi tre flussi, all'interno del file march.m si
+    vanno a modificare come si trovano la quantità che ci interessano.
+    Infatti, le variabili conservative dell'algoritmo AUSM+ sono diverse da quelle
+    usate dal Professor D'Ambrosio per implementare il metodo di Euleuro a
+    1 dimensione.
+    %}
+
+end %end of the for loop
+
+%% Condizioni al bordo che differiscono a seconda del test svolto
 if(itest == 1)  %REFLECTING WALL B.C.
-    %%DA RIVEDERE
+    %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;
     pin    = r1dum;
@@ -253,21 +284,28 @@ if(itest == 1)  %REFLECTING WALL B.C.
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
 end
 
-% if(itest >= 2)  % REFLECTING WALL B.C.
-%     r1dum  = p002-rho002*a002*u002;
-%     r2dum  = h002-p002/rho002;
-%     pin    = p002;
-%     uin    = u002;
-%     hin    = h002;
-%     [phi1(1),phi2(1),phi3(1)] = decod(pin,uin,hin);
-%     r3dum  = pncm+rhoncm*ancm*uncm;
-%     r2dum  = hncm-pncm/rhoncm;
-%     pex    = pncm;
-%     uex    = uncm;
-%     hex    = hncm;
-%     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod(pex,uex,hex);
-% end
+if(itest >= 2)  % REFLECTING WALL B.C.
+    %Per noi inutili:
+    %r1dum  = p002-rho002*a002*u002;
+    %r2dum  = h002-p002/rho002;
 
+    pin    = p002;
+    uin    = u002;
+    hin    = h002;
+    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
+
+    %Per noi inutili:
+    %r3dum  = pncm+rhoncm*ancm*uncm;
+    %r2dum  = hncm-pncm/rhoncm;
+
+    pex    = pncm;
+    uex    = uncm;
+    hex    = hncm;
+    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
+end
+
+% Prossime righe scritte da Gabriele, cercare di comprenderle
+%{
 if(itest >= 2)  % REFLECTING WALL B.C.
     %%DA RIVEDERE
     r1dum  = p002-rho002*a002*u002;
@@ -301,4 +339,7 @@ if(itest >= 2)  % REFLECTING WALL B.C.
     phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
     phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
 end
-end
+%}
+
+
+end %end of function

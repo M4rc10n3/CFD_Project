@@ -62,7 +62,7 @@ txt_tit4 = uicontrol('Style',...
     'Enable','on');
 bg_isch = uicontrol('Style',...
     'popup',...
-    'String',{'FDS-Osher', 'AUSM+', 'AUSMPW'},... % you can add other stings ...
+    'String',{'FDS-Osher', 'AUSM+', 'AUSM+ amiche Giulia'},... % you can add other stings ...
     'Position',[10 210 100 20],...
     'Visible','on',...
     'Enable','on');
@@ -505,7 +505,7 @@ pr   = str2double(edit_pR.String);
 % Posizione in cui vado a inserire la discontinuità
 x0   = str2double(edit_x0.String);
 
-fprintf('Euler_1D (FDS - 1st and 2nd Order)')
+fprintf('Euler_1D (FDS - 1st and 2nd Order) \n')
 k=1; % Numero del passo
 time=0.0;
 timek(k)=time; %Tempo al passo k
@@ -569,7 +569,7 @@ end
 
 while (k < ka) && (time < timemax)
     k=k+1;
-    fprintf('K =%i - TIME=%f',k,time)
+    fprintf('K =%i - TIME=%f \n',k,time)
     
     dt=1.e5;
     % Al denominatore c'è il valore massimo delle "lambda"
@@ -595,9 +595,25 @@ txt_time2.String = tt;
         eno1()
     end
 
-    split_ausm_plus2()
-    % split(); % Flux Difference Splitting -> Algoritmo da cambiare
-    march(); % Aggiorno le variabili
+%% Scelta dello schema 
+
+    %Osher di D'Ambrosio
+    if ischeme == 1
+        split()
+        march_Osher()
+    end
+
+    %AUSM+ implementato da noi
+    if ischeme == 2
+        split_ausm_plus2()
+        march_AUSM()
+    end
+
+    %AUSM+ che dovrebbe essere corretto
+    if ischeme == 3
+        split_1()
+        march_Osher()
+    end
     
     if (itest == 1)
         sum1=mean(w1);
@@ -607,7 +623,7 @@ txt_time2.String = tt;
         fprintf('K=%i - sum1=%f - sum2=%f - sum3=%f \n',k,sum1,sum2,sum3);
     end
 
-% Si crea il disegno
+% Si creano i grafici
 figure(fig_rho)
 hold off
 plot(x,rho,'o-')

@@ -161,7 +161,7 @@ for n=2:ncmm
         pd = exp(ppd);
         hc = exp(hhc);
         hd = exp(hhd);
-        fprintf('warning icalc=1 at k=%i and n=%i',k,n)
+        fprintf('warning icalc=1 at k=%i and n=%i \n',k,n)
     end
     
     ac = sqrt(2.0*gd*hc);
@@ -228,7 +228,7 @@ for n=2:ncmm
         if (icalc == 1)
             adum = 2.0*aa/gdgd^1.5;
             bdum = aa/gamma/sqrt(gdgd)*(r3a+ga*r2a);
-            iterstar(adum,bdum,cdum);
+            cdum = iterstar(adum,bdum);
             ast = sqrt(gdgd)*cdum;
             ust = ast;
             hst = gb*ast^2;
@@ -279,7 +279,7 @@ for n=2:ncmm
         if (icalc == 1)
             adum = 2.0 * ab / gdgd^1.5;
             bdum = ab / gamma / sqrt(gdgd) * (r1b + ga * r2b);
-            iterstar(adum, bdum, cdum);
+            cdum = iterstar(adum, bdum);
             ast = sqrt(gdgd) * cdum;
             ust = -ast;
             hst = gb * ast^2;
@@ -326,6 +326,7 @@ if(itest == 1)  %REFLECTING WALL B.C.
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod(pex,uex,hex);
 end
 if(itest >= 2)  % REFLECTING WALL B.C.
+    %Anche D'Ambrosio qui non sapeva esattamente come muoversi
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;
     pin    = p002;
