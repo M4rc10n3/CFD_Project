@@ -606,7 +606,7 @@ txt_time2.String = tt;
     %AUSM+ implementato da noi
     if ischeme == 2
         split_ausm_plus2()
-        march_AUSM()
+        march_ausm()
     end
 
     %AUSM+ che dovrebbe essere corretto
