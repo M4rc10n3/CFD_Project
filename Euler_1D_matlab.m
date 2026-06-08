@@ -600,19 +600,19 @@ txt_time2.String = tt;
     %Osher di D'Ambrosio
     if ischeme == 1
         split()
-        march_Osher()
+        march()
     end
 
     %AUSM+ implementato da noi
     if ischeme == 2
         split_ausm_plus2()
-        march_ausm()
+        march()
     end
 
     %AUSM+ che dovrebbe essere corretto
     if ischeme == 3
         split_1()
-        march_Osher()
+        march()
     end
     
     if (itest == 1)

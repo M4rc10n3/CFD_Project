@@ -51,7 +51,7 @@ for n=nin:ncm
     p(n)     = (e(n)-.5d0*rho(n)*u(n)*u(n))/gb;
     
     if (p(n) < 0.0)
-        fprintf('pressione negativa in n==%i; p(n)=%f; p(n-1)=%f \n',n,p(n),p(n-1))
+        fprintf('pressione negativa in n=%i; p(n)=%f; p(n-1)=%f \n',n,p(n),p(n-1))
     end
     
     t(n)     = p(n)/rho(n);
