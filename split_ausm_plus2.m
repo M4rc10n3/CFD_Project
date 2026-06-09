@@ -67,29 +67,24 @@ for n=2:ncmm
         %In questo caso non necessario calcolare entrambi i valori
         %a_starL002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
         %a_starR002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
+
+        % In questo caso ignoriamo il calcolo di a_tilde poiché 
+        % a002 = a_tilde002
         %a_tildeL002 = a_starL002^2/max(a_starL002,abs(u002)); %u002 = ua
         %a_tildeR002 = a_starR002^2/max(a_starR002,abs(ub));
+
         %a002 = min(a_tildeR002,a_tildeL002);
 
         a_star002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
-        % In questo caso ignoriamo il calcolo di a_tilde poiché 
-        % a002 = a_tilde002
         a002 = a_star002^2/max(a_star002,abs(u002)); 
+
         M002 = u002/a002;
+
+        M_cors_plus = M_beta(M002, 1/8, 'plus');
+        M_cors_minus = M_beta(M002, 1/8, 'minus');
         
-        if abs(M002) > 1 
-            M_cors_plus = 0.5*(M002+abs(M002));
-            P_cors_plus = 0.5*(1+sign(M002));
-
-            M_cors_minus = 0.5*(M002-abs(M002));
-            P_cors_minus = 0.5*(1-sign(M002));
-        else  % valori ottimali già settati beta=1/8, alpha=3/16
-            M_cors_plus = 0.25*(M002+1)^2 + (1/8)*(M002^2-1)^2; 
-            P_cors_plus = 0.25*(M002+1)^2*(2-M002) + (3/16)*M002*(M002^2-1)^2;
-
-            M_cors_minus = -0.25*(M002-1)^2 - (1/8)*(M002^2-1)^2;
-            P_cors_minus = 0.25*(M002-1)^2*(2+M002) - (3/16)*M002*(M002^2-1)^2;
-        end
+        P_cors_plus = P_alpha(M002, 3/16, 'plus');
+        P_cors_minus = P_alpha(M002, 3/16, 'minus');
 
         m002 = M_cors_plus + M_cors_minus;
         p002 = P_cors_plus*p002 + P_cors_minus*p002;
@@ -103,33 +98,19 @@ for n=2:ncmm
         uncm   = ub;
         hncm   = hb;
         rhoncm = pncm/hncm*ga;
-
         % Nota: sx = dx, cioè pa = pb = pncm, etc.
         h_tncm = hncm + uncm^2/2;
-        
-        %Idem come sopra: non è necessario calcolare entrambi i valori.
-        %a_starLncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
-        %a_starRncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
+
         a_starncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
-        %a_tildeLncm = a_starLncm^2/max(a_starLncm,abs(uncm));
-        %a_tildeRncm = a_starRncm^2/max(a_starRncm,abs(uncm));
-        %ancm = min(a_tildeRncm,a_tildeLncm);
         ancm = a_starncm^2/max(a_starncm,abs(uncm));
+
         Mncm = uncm/ancm;
-        
-        if abs(Mncm) > 1 
-            M_cors_plus = 0.5*(Mncm+abs(Mncm));
-            P_cors_plus = 0.5*(1+sign(Mncm));
 
-            M_cors_minus = 0.5*(Mncm-abs(Mncm));
-            P_cors_minus = 0.5*(1-sign(Mncm));
-        else  % valori ottimali già settati beta=1/8, alpha=3/16
-            M_cors_plus = 0.25*(Mncm+1)^2 + (1/8)*(Mncm^2-1)^2;
-            P_cors_plus = 0.25*(Mncm+1)^2*(2-Mncm) + (3/16)*Mncm*(Mncm^2-1)^2;
+        M_cors_plus = M_beta(Mncm, 1/8, 'plus');
+        M_cors_minus = M_beta(Mncm, 1/8, 'minus');
 
-            M_cors_minus = -0.25*(Mncm-1)^2 - (1/8)*(Mncm^2-1)^2;
-            P_cors_minus = 0.25*(Mncm-1)^2*(2+Mncm) - (3/16)*Mncm*(Mncm^2-1)^2;
-        end
+        P_cors_plus = P_alpha(Mncm, 3/16, 'plus');
+        P_cors_minus = P_alpha(Mncm, 3/16, 'minus');
 
         mncm = M_cors_plus + M_cors_minus;
         pncm = P_cors_plus*pncm + P_cors_minus*pncm;
@@ -223,40 +204,22 @@ for n=2:ncmm
         Ma = ua/a_n;
         Mb = ub/a_n;
         
-        
-        if abs(Ma) > 1 % valori ottimali già settati beta=1/8, alpha=3/16
-            M_cors_plus = 0.5*(Ma+abs(Ma));
-            P_cors_plus = 0.5*(1+sign(Ma));
-        else
-            M_cors_plus = 0.25*(Ma+1)^2 + (1/8)*(Ma^2-1)^2;
-            P_cors_plus = 0.25*(Ma+1)^2*(2-Ma) + (3/16)*Ma*(Ma^2-1)^2;
-        end
-
-        if abs(Mb) > 1  
-            M_cors_minus = 0.5*(Mb-abs(Mb));
-            P_cors_minus = 0.5*(1-sign(Mb));
-        else
-            M_cors_minus = -0.25*(Mb-1)^2 - (1/8)*(Mb^2-1)^2;
-            P_cors_minus = 0.25*(Mb-1)^2*(2+Mb) - (3/16)*Mb*(Mb^2-1)^2;
-        end
-        
-        %{
-        Provare per sostituire
         M_cors_plus = M_beta(Ma, 1/8, 'plus');
         M_cors_minus = M_beta(Mb, 1/8, 'minus');
+
         P_cors_plus = P_alpha(Ma, 3/16, 'plus');
         P_cors_minus = P_alpha(Mb, 3/16, 'minus');
-        %}
+        
 
         m_n = M_cors_plus + M_cors_minus;
         p_n = P_cors_plus*pa + P_cors_minus*pb;
         m_n_plus = 0.5*(m_n+abs(m_n));
         m_n_minus = 0.5*(m_n-abs(m_n));
     
-    % Formula A3 del paper scomposta nelle 3 componenti:
-    phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
-    phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
-    phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
+        % Formula A3 del paper scomposta nelle 3 componenti:
+        phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
+        phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
+        phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
 
         %{ 
         %AUSMPW
@@ -275,8 +238,8 @@ end %end of the for loop
 
 %% Condizioni al bordo che differiscono a seconda del test svolto
 
-% Versione precedente non funzionante
 %{ 
+% Versione precedente non funzionante
 if(itest == 1)  %REFLECTING WALL B.C.
     %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?
     r1dum  = p002-rho002*a002*u002;
@@ -290,6 +253,27 @@ if(itest == 1)  %REFLECTING WALL B.C.
     pex    = r3dum;
     uex    = 0.0;
     hex    = r2dum+pex/rhoncm;
+    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
+end
+
+% Versione precedente non funzionante
+if(itest >= 2)  % REFLECTING WALL B.C.
+    %Per noi inutili:
+    %r1dum  = p002-rho002*a002*u002;
+    %r2dum  = h002-p002/rho002;
+
+    pin    = p002;
+    uin    = u002;
+    hin    = h002;
+    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
+
+    %Per noi inutili:
+    %r3dum  = pncm+rhoncm*ancm*uncm;
+    %r2dum  = hncm-pncm/rhoncm;
+
+    pex    = pncm;
+    uex    = uncm;
+    hex    = hncm;
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
 end
 %}
@@ -323,29 +307,6 @@ if(itest == 1)  %REFLECTING WALL B.C.
     phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
     phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
 end
-
-% Versione precedente non funzionante
-%{
-if(itest >= 2)  % REFLECTING WALL B.C.
-    %Per noi inutili:
-    %r1dum  = p002-rho002*a002*u002;
-    %r2dum  = h002-p002/rho002;
-
-    pin    = p002;
-    uin    = u002;
-    hin    = h002;
-    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
-
-    %Per noi inutili:
-    %r3dum  = pncm+rhoncm*ancm*uncm;
-    %r2dum  = hncm-pncm/rhoncm;
-
-    pex    = pncm;
-    uex    = uncm;
-    hex    = hncm;
-    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
-end
-%}
 
 if(itest >= 2)  % REFLECTING WALL B.C.
     ain    = a002;
@@ -379,7 +340,7 @@ end
 
 end %end of function
 
-%% Implementation of some functions used for the AUSMPW
+%% Implementation of some functions used for AUSM+ and AUSMPW
 
 %pl computes the value of pl(x, y) from formula (40) of page 318
 %of the AUSMPW paper
