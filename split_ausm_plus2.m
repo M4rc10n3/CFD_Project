@@ -77,7 +77,7 @@ for n=2:ncmm
         a002 = a_star002^2/max(a_star002,abs(u002)); 
         M002 = u002/a002;
         
-        if abs(M002) >= 1 
+        if abs(M002) > 1 
             M_cors_plus = 0.5*(M002+abs(M002));
             P_cors_plus = 0.5*(1+sign(M002));
 
@@ -117,7 +117,7 @@ for n=2:ncmm
         ancm = a_starncm^2/max(a_starncm,abs(uncm));
         Mncm = uncm/ancm;
         
-        if abs(Mncm) >= 1 
+        if abs(Mncm) > 1 
             M_cors_plus = 0.5*(Mncm+abs(Mncm));
             P_cors_plus = 0.5*(1+sign(Mncm));
 
@@ -214,7 +214,7 @@ for n=2:ncmm
         a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
         a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
 
-        if itest == 2 || itest == 3
+        if itest == 1 || itest == 3
             a_n = 0.5*(a_star_a+a_star_b);
         else
             a_n = min(a_tilde_a,a_tilde_b);
@@ -222,8 +222,9 @@ for n=2:ncmm
 
         Ma = ua/a_n;
         Mb = ub/a_n;
-
-        if abs(Ma) >= 1 % valori ottimali già settati beta=1/8, alpha=3/16
+        
+        
+        if abs(Ma) > 1 % valori ottimali già settati beta=1/8, alpha=3/16
             M_cors_plus = 0.5*(Ma+abs(Ma));
             P_cors_plus = 0.5*(1+sign(Ma));
         else
@@ -231,13 +232,21 @@ for n=2:ncmm
             P_cors_plus = 0.25*(Ma+1)^2*(2-Ma) + (3/16)*Ma*(Ma^2-1)^2;
         end
 
-        if abs(Mb) >= 1  
+        if abs(Mb) > 1  
             M_cors_minus = 0.5*(Mb-abs(Mb));
             P_cors_minus = 0.5*(1-sign(Mb));
         else
             M_cors_minus = -0.25*(Mb-1)^2 - (1/8)*(Mb^2-1)^2;
             P_cors_minus = 0.25*(Mb-1)^2*(2+Mb) - (3/16)*Mb*(Mb^2-1)^2;
         end
+        
+        %{
+        Provare per sostituire
+        M_cors_plus = M_beta(Ma, 1/8, 'plus');
+        M_cors_minus = M_beta(Mb, 1/8, 'minus');
+        P_cors_plus = P_alpha(Ma, 3/16, 'plus');
+        P_cors_minus = P_alpha(Mb, 3/16, 'minus');
+        %}
 
         m_n = M_cors_plus + M_cors_minus;
         p_n = P_cors_plus*pa + P_cors_minus*pb;
