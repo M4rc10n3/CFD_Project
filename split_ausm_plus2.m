@@ -240,7 +240,7 @@ for n=2:ncmm
                     (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
                     (P_cors_plus*pa + P_cors_minus*pb);
                 phi3(n) = a_n*((1+fa)*M_cors_plus* rhoa*h_ta+ ...
-                    (1+fb)*M_cors_minus* pw(rhoa,rhob)*hta ) + ...
+                    (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta ) + ...
                     (P_cors_plus*pa + P_cors_minus*pb);
             else
                 phi1(n) = a_n*((1+fa)*M_cors_plus* pw(rhob,rhoa) + ...
@@ -377,9 +377,13 @@ function result = pl(x, y)
     elseif m < 3/4 && m >= 0
         result = 0.0;
         return
+    %Consigliato da ChatGPT
+    elseif m == 1
+        result = 1;
+        return
     else
         fprintf(['Something went wrong with the computation of pl; ' ...
-            'x and y have probably the same number\n'])
+            'x and y are probably the same number\n'])
         result = -1;
     end
 end
