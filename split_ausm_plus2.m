@@ -34,6 +34,7 @@ for n=2:ncmm
     % Le condizioni al bordo qui sotto servono poi per i calcoli 
     % da riga 240 in poi; da capire quali implementare
     %% Condizioni al bordo di D'Ambrosio
+    %{
     if n == 2
         p002   =  pa;
         u002   =  ua;
@@ -49,9 +50,9 @@ for n=2:ncmm
         rhoncm =  pncm/hncm*ga;
         ancm   =  sqrt(gamma*pncm/rhoncm);
     end
+    %}
 
     %% Condizioni al bordo nostre
-    %{
     if n == 2
         p002   = pa; 
         u002   = ua;
@@ -61,7 +62,7 @@ for n=2:ncmm
         % Nota: sx = dx, cioè pa = pb = p002, etc.
 
         %Entalpia specifica totale
-        h_t002 = h002+u002^2/2;
+        h_t002 = h002 + u002^2/2;
         
         %In questo caso non necessario calcolare entrambi i valori
         %a_starL002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
@@ -95,11 +96,6 @@ for n=2:ncmm
 
         m_plus002 = 0.5*(m002+abs(m002));
         m_minus002 = 0.5*(m002-abs(m002));
-
-        %a_n = a002;
-        m_n_plus = m_plus002;
-        m_n_minus = m_minus002;
-        p_n = p002;
     end
     
     if n == ncmm
@@ -107,10 +103,9 @@ for n=2:ncmm
         uncm   = ub;
         hncm   = hb;
         rhoncm = pncm/hncm*ga;
-        % ancm   = sqrt(gamma*pncm/rhoncm); 
 
         % Nota: sx = dx, cioè pa = pb = pncm, etc.
-        h_tncm = hncm+uncm^2/2;
+        h_tncm = hncm + uncm^2/2;
         
         %Idem come sopra: non è necessario calcolare entrambi i valori.
         %a_starLncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
@@ -139,15 +134,10 @@ for n=2:ncmm
         mncm = M_cors_plus + M_cors_minus;
         pncm = P_cors_plus*pncm + P_cors_minus*pncm;
 
-        m_plusncm = 0.5*(mncm+abs(mncm));
-        m_minusncm = 0.5*(mncm-abs(mncm));
-        
-        %a_n = ancm;
-        m_n_plus = m_plusncm;
-        m_n_minus = m_minusncm;
-        p_n = pncm;
+        m_plus_ncm = 0.5*(mncm+abs(mncm));
+        m_minus_ncm = 0.5*(mncm-abs(mncm));
     end
-    %}
+    
 
     %% Per aumentare l'ordine dell'algoritmo
     if iord ~= 1
@@ -209,14 +199,14 @@ for n=2:ncmm
     end
     
     %% Tutte le interfacce che non sono la seconda o la penultima
-    if n > 2 && n < ncmm
+    if n >= 2 && n <= ncmm
 
-        % calcolo sul paper usando pa per a_j e pb per a_j+1
+        % calcolo sul paper usando a per j e b per j+1
         rhoa = pa/ha*ga;
         rhob = pb/hb*ga;
     
-        h_ta = ha+ua^2/2;
-        h_tb = hb+ub^2/2;
+        h_ta = ha + ua^2/2;
+        h_tb = hb + ub^2/2;
         
         a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
         a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);
@@ -268,6 +258,7 @@ for n=2:ncmm
 end %end of the for loop
 
 %% Condizioni al bordo che differiscono a seconda del test svolto
+%{
 if(itest == 1)  %REFLECTING WALL B.C.
     %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?
     r1dum  = p002-rho002*a002*u002;
@@ -283,7 +274,41 @@ if(itest == 1)  %REFLECTING WALL B.C.
     hex    = r2dum+pex/rhoncm;
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
 end
+%}
 
+if(itest == 1)  %REFLECTING WALL B.C.
+    %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?    
+    ain    = a002;
+    pin    = p002;
+    uin    = u002;
+    hin    = h002;
+    rhoin  = rho002;
+    rho_2  = p(3)/h(3)*ga;
+    h_tin  = hin + uin^2/2;
+    h_t_2  = h(3) + u(3)^2/2;
+    m_minus_in = m_minus002;
+    m_plus_in  = m_plus002;
+    phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
+    phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
+    phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
+
+    aex    = ancm;
+    pex    = pncm;
+    uex    = uncm;
+    hex    = hncm;
+    rhoex  = rhoncm;
+    rho_ncmm = p(ncmm)/h(ncmm)*ga;
+    h_tex  = hex + uex^2/2;
+    h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
+    m_minus_ex = m_minus_ncm;
+    m_plus_ex  = m_plus_ncm;
+    phi1(ncm) = aex*(m_plus_ex*rho_ncmm + m_minus_ex*rhoex);
+    phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
+    phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
+end
+
+% Versione precedente non funzionante
+%{
 if(itest >= 2)  % REFLECTING WALL B.C.
     %Per noi inutili:
     %r1dum  = p002-rho002*a002*u002;
@@ -303,43 +328,36 @@ if(itest >= 2)  % REFLECTING WALL B.C.
     hex    = hncm;
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
 end
+%}
 
-% Prossime righe scritte da Gabriele, cercare di comprenderle
-%{
 if(itest >= 2)  % REFLECTING WALL B.C.
-    %%DA RIVEDERE
-    r1dum  = p002-rho002*a002*u002;
-    r2dum  = h002-p002/rho002;
     ain    = a002;
     pin    = p002;
     uin    = u002;
     hin    = h002;
     rhoin  = rho002;
     rho_2  = p(3)/h(3)*ga;
-    h_tin  = hin+uin^2/2;
-    h_t_2  = h(3)+u(3)^2/2;
+    h_tin  = hin + uin^2/2;
+    h_t_2  = h(3) + u(3)^2/2;
     m_minus_in = m_minus002;
     m_plus_in  = m_plus002;
     phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
     phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
     phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
-    r3dum  = pncm+rhoncm*ancm*uncm;
-    r2dum  = hncm-pncm/rhoncm;
+
     aex    = ancm;
     pex    = pncm;
     uex    = uncm;
     hex    = hncm;
     rhoex  = rhoncm;
     rho_ncmm = p(ncmm)/h(ncmm)*ga;
-    h_tex  = hex+uex^2/2;
-    h_t_ncmm = h(ncmm)+u(ncmm)^2/2;
-    m_minus_ex = m_minusncm;
-    m_plus_ex  = m_plusncm;
+    h_tex  = hex + uex^2/2;
+    h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
+    m_minus_ex = m_minus_ncm;
+    m_plus_ex  = m_plus_ncm;
     phi1(ncm) = aex*(m_plus_ex*rho_ncmm + m_minus_ex*rhoex);
     phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
     phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
 end
-%}
-
 
 end %end of function
