@@ -600,20 +600,14 @@ txt_time2.String = tt;
     %Osher di D'Ambrosio
     if ischeme == 1
         split()
-        march()
     end
 
     %AUSM+ implementato da noi
     if ischeme == 2
         split_ausm_plus2()
-        march()
     end
-
-    %AUSM+ che dovrebbe essere corretto
-    if ischeme == 3
-        split_1()
-        march()
-    end
+    
+    march()
     
     if (itest == 1)
         sum1=mean(w1);

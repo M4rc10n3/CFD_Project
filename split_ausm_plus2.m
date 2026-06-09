@@ -247,18 +247,12 @@ for n=2:ncmm
     
     end
 
-    %{ 
-    Dopo aver calcolato questi tre flussi, all'interno del file march.m si
-    vanno a modificare come si trovano la quantità che ci interessano.
-    Infatti, le variabili conservative dell'algoritmo AUSM+ sono diverse da quelle
-    usate dal Professor D'Ambrosio per implementare il metodo di Euleuro a
-    1 dimensione.
-    %}
-
 end %end of the for loop
 
 %% Condizioni al bordo che differiscono a seconda del test svolto
-%{
+
+% Versione precedente non funzionante
+%{ 
 if(itest == 1)  %REFLECTING WALL B.C.
     %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?
     r1dum  = p002-rho002*a002*u002;
@@ -277,7 +271,6 @@ end
 %}
 
 if(itest == 1)  %REFLECTING WALL B.C.
-    %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?    
     ain    = a002;
     pin    = p002;
     uin    = u002;
@@ -361,3 +354,27 @@ if(itest >= 2)  % REFLECTING WALL B.C.
 end
 
 end %end of function
+
+%%Implementation of the functions used for the AUSMPW
+
+%{
+function result = pl(x, y)
+    m = min(x/y, y/x);
+    if m >= 3/4 && m < 1
+        result = 4 * m - 3;
+    elseif m < 3/4 && m >= 0
+        result = 0.0;
+    else
+        fprintf(['Something went wrong with the computation of pl:' ...
+            'between cells %i and %i at k=%i\n', nm, np, k])
+    end
+end
+
+function result = pw(x,y)
+    result = (1 - w(x, y)) * x + w * y;
+end
+
+function result = w(x, y)
+    result = 1 - (min(x/y, y/x))^3;
+end
+%}
