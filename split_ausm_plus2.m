@@ -244,6 +244,16 @@ for n=2:ncmm
     phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
     phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
     phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
+
+        %{ 
+        %AUSMPW
+        % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW, la
+        % formula apagina 318 per p_s ha probabilmente un errore nell'ultima
+        % P_R
+        p_s = P_cors_plus * pa + P_cors_minus * pb
+
+
+        %}
     
     end
 
@@ -355,9 +365,10 @@ end
 
 end %end of function
 
-%%Implementation of the functions used for the AUSMPW
+%% Implementation of some functions used for the AUSMPW
 
-%{
+%Function that computes the value of pl(x, y) from formula (40) of page 318
+%of the paper
 function result = pl(x, y)
     m = min(x/y, y/x);
     if m >= 3/4 && m < 1
@@ -370,11 +381,46 @@ function result = pl(x, y)
     end
 end
 
-function result = pw(x,y)
+%Function that computes the value of w(x, y) from page 319 of the paper
+function result = w(x, y) 
+    result = 1 - (min(x/y, y/x))^3;
+end
+
+%Function that computes the value of pw(x, y) from page 319 of the paper
+function result = pw(x,y) 
     result = (1 - w(x, y)) * x + w * y;
 end
 
-function result = w(x, y)
-    result = 1 - (min(x/y, y/x))^3;
+%Function that calculates the value of M_beta depending on which beta you
+%give it as an input and which sign you wish your M_beta to have
+function result = M_beta(M, beta, sign)
+    %First, we need to decide the sign of M_beta
+    if strcmpi(sign, 'plus') %strcmpi gives true (or 1) if the two strings 
+        % are the same (it is case insensitive), otherwise it gives 
+        % false (or 0) as a result
+
+        if abs(M) <= 1
+            result = 0.25*(M+1)^2 + beta*(M^2-1)^2;
+        else
+            result = 0.5*(M+abs(M));
+        end
+
+    elseif strcmpi(sign, 'minus')
+
+        if abs(M) <= 1
+            result = -0.25*(M-1)^2 - beta*(M^2-1)^2;
+        else
+            result = 0.5*(M-abs(M));
+        end
+        
+    else
+        fprintf(['Something went wrong: have you spelt "plus" and "minus" ' ...
+            'correctly in every usage of M_beta? \n'] )
+    end
 end
+
+function result = f_limiter(M, p_l, p_r, u)
+    %Da implementare
+end
+
 %}
