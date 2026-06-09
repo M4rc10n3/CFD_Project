@@ -214,7 +214,11 @@ for n=2:ncmm
         a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
         a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
 
-        a_n = min(a_tilde_a,a_tilde_b);
+        if itest == 2 || itest == 3
+            a_n = 0.5*(a_star_a+a_star_b);
+        else
+            a_n = min(a_tilde_a,a_tilde_b);
+        end
 
         Ma = ua/a_n;
         Mb = ub/a_n;
@@ -234,7 +238,7 @@ for n=2:ncmm
             M_cors_minus = -0.25*(Mb-1)^2 - (1/8)*(Mb^2-1)^2;
             P_cors_minus = 0.25*(Mb-1)^2*(2+Mb) - (3/16)*Mb*(Mb^2-1)^2;
         end
-    
+
         m_n = M_cors_plus + M_cors_minus;
         p_n = P_cors_plus*pa + P_cors_minus*pb;
         m_n_plus = 0.5*(m_n+abs(m_n));
@@ -248,9 +252,10 @@ for n=2:ncmm
         %{ 
         %AUSMPW
         % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW, la
-        % formula apagina 318 per p_s ha probabilmente un errore nell'ultima
+        % formula a pagina 318 per p_s ha probabilmente un errore nell'ultima
         % P_R
         p_s = P_cors_plus * pa + P_cors_minus * pb
+        
 
 
         %}
@@ -367,8 +372,8 @@ end %end of function
 
 %% Implementation of some functions used for the AUSMPW
 
-%Function that computes the value of pl(x, y) from formula (40) of page 318
-%of the paper
+%pl computes the value of pl(x, y) from formula (40) of page 318
+%of the AUSMPW paper
 function result = pl(x, y)
     m = min(x/y, y/x);
     if m >= 3/4 && m < 1
@@ -381,21 +386,21 @@ function result = pl(x, y)
     end
 end
 
-%Function that computes the value of w(x, y) from page 319 of the paper
+%w computes the value of w(x, y) from page 319
 function result = w(x, y) 
     result = 1 - (min(x/y, y/x))^3;
 end
 
-%Function that computes the value of pw(x, y) from page 319 of the paper
+%pw computes the value of pw(x, y) from page 319
 function result = pw(x,y) 
     result = (1 - w(x, y)) * x + w * y;
 end
 
-%Function that calculates the value of M_beta depending on which beta you
+%M_beta calculates the value of M_beta depending on which beta you
 %give it as an input and which sign you wish your M_beta to have
-function result = M_beta(M, beta, sign)
+function result = M_beta(M, beta, sgn)
     %First, we need to decide the sign of M_beta
-    if strcmpi(sign, 'plus') %strcmpi gives true (or 1) if the two strings 
+    if strcmpi(sgn, 'plus') %strcmpi gives true (or 1) if the two strings 
         % are the same (it is case insensitive), otherwise it gives 
         % false (or 0) as a result
 
@@ -405,7 +410,7 @@ function result = M_beta(M, beta, sign)
             result = 0.5*(M+abs(M));
         end
 
-    elseif strcmpi(sign, 'minus')
+    elseif strcmpi(sgn, 'minus')
 
         if abs(M) <= 1
             result = -0.25*(M-1)^2 - beta*(M^2-1)^2;
@@ -419,8 +424,53 @@ function result = M_beta(M, beta, sign)
     end
 end
 
-function result = f_limiter(M, p_l, p_r, u)
-    %Da implementare
+%f_limiter computes the value of the function f "similar to a limiter"
+%introduced with the AUSMPW algorithm - formula (39) of page 318
+%As inputs, it needs:
+% - the Mach number and the velocity of the correct cell (left or right);
+% - the value of the speed of sound on the interface;
+% - the value of pressure on the two consecutives cell;
+% - the values of p_s;
+% - whether you want to calculate the 'left' or the 'right' one.
+function result = f_limiter(M, u, a_n, p_l, p_r, p_s, position)
+    if abs(M) < 1
+        if strcmpi(position, 'left')
+            result = (p_l/p_s - 1)*pl(p_l,p_r)*abs(M_beta(M,0,'plus')* ...
+                min(1, (abs(u)/a_n)^(0.25)));
+        elseif strcmpi(position, 'right')
+            result = (p_r/p_s - 1)*pl(p_r,p_l)*abs(M_beta(M,0,'minus')* ...
+                min(1, (abs(u)/a_n)^(0.25)));
+        else
+            fprintf(['Something went wrong: have you spelt "left" and "right" ' ...
+            'correctly in every usage of f_limiter? \n'] )
+        end
+    else
+        result = 0.0;
+    end
+end
+
+function result = P_alpha(M, alpha, sgn)
+    %First, we need to decide the sign of P_alpha
+    if strcmpi(sgn, 'plus')
+
+        if abs(M) <= 1
+            result = 0.25*(M+1)^2*(2-M) + alpha*M*(M^2-1)^2;
+        else
+            result = 0.5*(1+sign(M));
+        end
+
+    elseif strcmpi(sgn, 'minus')
+
+        if abs(M) <= 1
+            result = 0.25*(M-1)^2*(2+M) - alpha*M*(M^2-1)^2;
+        else
+            result = 0.5*(1-sign(M));
+        end
+        
+    else
+        fprintf(['Something went wrong: have you spelt "plus" and "minus" ' ...
+            'correctly in every usage of P_alpha? \n'] )
+    end
 end
 
 %}
