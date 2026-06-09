@@ -10,6 +10,7 @@ global  xsh1 xsh2 xsh3 xsh4 xsh5 xsh3l xsh3r xsh4l xsh4r % era USE INIT_PAR
 global p t u s rho a e amach ptot ttot flow flht h htot % era USE VARS
 global w1 w2 w3 f1 f2 f3 phi1 phi2 phi3                    % era USE VARS
 global pxeno uxeno hxeno ppxeno hhxeno ppt ut hht % era USE ENO
+global ischeme
 
 enuo2 = 0.5*dt/dx;
 
@@ -216,22 +217,46 @@ for n=2:ncmm
         m_n_plus = 0.5*(m_n+abs(m_n));
         m_n_minus = 0.5*(m_n-abs(m_n));
     
-        % Formula A3 del paper scomposta nelle 3 componenti:
-        phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
-        phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
-        phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
-
-        %{ 
-        %AUSMPW
-        % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW, la
-        % formula a pagina 318 per p_s ha probabilmente un errore nell'ultima
-        % P_R
-        p_s = P_cors_plus * pa + P_cors_minus * pb
-        
-
-
-        %}
-    
+        if ischeme == 2
+            %Caso AUSM+
+            % Formula A3 del paper scomposta nelle 3 componenti:
+            phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
+            phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + p_n;
+            phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
+        elseif ischeme == 3
+            %AUSMPW
+            % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW, la
+            % formula a pagina 318 per p_s ha probabilmente un errore nell'ultima
+            % P_R
+            p_s = P_cors_plus * pa + P_cors_minus * pb;
+            fa = f_limiter(Ma, ua, a_n, pa, pb, p_s, 'left');
+            fb = f_limiter(Mb, ub, a_n, pa, pb, p_s, 'right');
+            
+            if m_n >= 0
+                phi1(n) = a_n*((1+fa)*M_cors_plus* rhoa + ...
+                    (1+fb)*M_cors_minus* pw(rhoa,rhob) ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+                phi2(n) = a_n*((1+fa)*M_cors_plus* rhoa*ua + ...
+                    (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+                phi3(n) = a_n*((1+fa)*M_cors_plus* rhoa*h_ta+ ...
+                    (1+fb)*M_cors_minus* pw(rhoa,rhob)*hta ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+            else
+                phi1(n) = a_n*((1+fa)*M_cors_plus* pw(rhob,rhoa) + ...
+                    (1+fb)*M_cors_minus* rhob ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+                phi2(n) = a_n*((1+fa)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
+                    (1+fb)*M_cors_minus* rhob*ub ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+                phi3(n) = a_n*((1+fa)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
+                    (1+fb)*M_cors_minus* rhob*h_tb ) + ...
+                    (P_cors_plus*pa + P_cors_minus*pb);
+            end
+        else
+            fprintf(['What just happened? How did you find a scheme ' ...
+                'that we have not implemented?'])
+        end
     end
 
 end %end of the for loop
@@ -348,11 +373,14 @@ function result = pl(x, y)
     m = min(x/y, y/x);
     if m >= 3/4 && m < 1
         result = 4 * m - 3;
+        return
     elseif m < 3/4 && m >= 0
         result = 0.0;
+        return
     else
-        fprintf(['Something went wrong with the computation of pl:' ...
-            'between cells %i and %i at k=%i\n', nm, np, k])
+        fprintf(['Something went wrong with the computation of pl; ' ...
+            'x and y have probably the same number\n'])
+        result = -1;
     end
 end
 
@@ -363,7 +391,7 @@ end
 
 %pw computes the value of pw(x, y) from page 319
 function result = pw(x,y) 
-    result = (1 - w(x, y)) * x + w * y;
+    result = (1 - w(x, y)) * x + w(x,y) * y;
 end
 
 %M_beta calculates the value of M_beta depending on which beta you
@@ -376,16 +404,20 @@ function result = M_beta(M, beta, sgn)
 
         if abs(M) <= 1
             result = 0.25*(M+1)^2 + beta*(M^2-1)^2;
+            return
         else
             result = 0.5*(M+abs(M));
+            return
         end
 
     elseif strcmpi(sgn, 'minus')
 
         if abs(M) <= 1
             result = -0.25*(M-1)^2 - beta*(M^2-1)^2;
+            return
         else
             result = 0.5*(M-abs(M));
+            return
         end
         
     else
@@ -407,9 +439,11 @@ function result = f_limiter(M, u, a_n, p_l, p_r, p_s, position)
         if strcmpi(position, 'left')
             result = (p_l/p_s - 1)*pl(p_l,p_r)*abs(M_beta(M,0,'plus')* ...
                 min(1, (abs(u)/a_n)^(0.25)));
+            return
         elseif strcmpi(position, 'right')
             result = (p_r/p_s - 1)*pl(p_r,p_l)*abs(M_beta(M,0,'minus')* ...
                 min(1, (abs(u)/a_n)^(0.25)));
+            return
         else
             fprintf(['Something went wrong: have you spelt "left" and "right" ' ...
             'correctly in every usage of f_limiter? \n'] )
@@ -425,16 +459,20 @@ function result = P_alpha(M, alpha, sgn)
 
         if abs(M) <= 1
             result = 0.25*(M+1)^2*(2-M) + alpha*M*(M^2-1)^2;
+            return
         else
             result = 0.5*(1+sign(M));
+            return
         end
 
     elseif strcmpi(sgn, 'minus')
 
         if abs(M) <= 1
             result = 0.25*(M-1)^2*(2+M) - alpha*M*(M^2-1)^2;
+            return
         else
             result = 0.5*(1-sign(M));
+            return
         end
         
     else

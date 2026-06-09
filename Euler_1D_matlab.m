@@ -62,7 +62,7 @@ txt_tit4 = uicontrol('Style',...
     'Enable','on');
 bg_isch = uicontrol('Style',...
     'popup',...
-    'String',{'FDS-Osher', 'AUSM+'},... % you can add other stings ...
+    'String',{'FDS-Osher', 'AUSM+', 'AUSMPW'},... % you can add other strings ...
     'Position',[10 210 100 20],...
     'Visible','on',...
     'Enable','on');
@@ -482,6 +482,8 @@ global p1l p1r u1l u1r s1l s1r a1l a1r t1l t1r rho1l rho1r e1l e1r % era USE THE
 global p2l p2r u2l u2r s2l s2r a2l a2r t2l t2r rho2l rho2r e2l e2r % era USE THEORETICAL
 global p3l p3r u3l u3r s3l s3r a3l a3r t3l t3r rho3l rho3r e3l e3r % era USE THEORETICAL
 global p4l p4r u4l u4r s4l s4r a4l a4r t4l t4r rho4l rho4r e4l e4r % era USE THEORETICAL
+global ischeme %Per passare il tipo di schema anche ad ausm_split_plus2, 
+% poi inutile se vogliamo creare un file split_ausmpw
 
 if (pb_cont.Value == 0)
 
@@ -602,8 +604,8 @@ txt_time2.String = tt;
         split()
     end
 
-    %AUSM+ implementato da noi
-    if ischeme == 2
+    %AUSM e AUSMPW implementati da noi
+    if ischeme == 2 || ischeme ==3
         split_ausm_plus2()
     end
     
