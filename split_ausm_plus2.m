@@ -242,99 +242,66 @@ for n=2:ncmm
 
 end %end of the for loop
 
-%% Condizioni al bordo che differiscono a seconda del test svolto
+%% Calcolo delle variabili sul bordo
+ain    = a002;
+pin    = p002;
+uin    = u002;
+hin    = h002;
+rhoin  = rho002;
+rho_2  = p(3)/h(3)*ga;
+h_tin  = hin + uin^2/2;
+h_t_2  = h(3) + u(3)^2/2;
+m_minus_in = m_minus002;
+m_plus_in  = m_plus002;
 
-if(itest == 1) 
-    ain    = a002;
-    pin    = p002;
-    uin    = u002;
-    hin    = h002;
-    rhoin  = rho002;
-    rho_2  = p(3)/h(3)*ga;
-    h_tin  = hin + uin^2/2;
-    h_t_2  = h(3) + u(3)^2/2;
-    m_minus_in = m_minus002;
-    m_plus_in  = m_plus002;
-
-    if ischeme == 2
-        phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
-        phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
-        phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
-    elseif ischeme == 3
-        %Ci serve nuovamente definire i valori di tutte le variabili, della
-        %cella a sinistra (indicata con in) e di quella a destra (indicata
-        %con _2)
-        p_2 = p(3);
-        u_2 = u(3);
-        a_n; %Da definire
-        M_2; %Da definire
-        p_s = P_cors_plus002 * pin + P_cors_minus002 * p_2;
-        f002 = f_limiter(M002, uin, a_n, pin, p_2, p_s, 'left');
-        fb = f_limiter(M_2, u_2, a_n, pin, p_2, p_s, 'right');
-        
-        if m_minus_in >= 0
-            phi1(n) = a_n*((1+f002)*M_cors_plus* rhoa + ...
-                (1+fb)*M_cors_minus* pw(rhoa,rhob) );
-            phi2(n) = a_n*((1+f002)*M_cors_plus* rhoa*ua + ...
-                (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
-                (P_cors_plus*pa + P_cors_minus*pb);
-            phi3(n) = a_n*((1+f002)*M_cors_plus* rhoa*h_ta+ ...
-                (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta );
-        else
-            phi1(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa) + ...
-                (1+fb)*M_cors_minus* rhob );
-            phi2(n) = a_n*((1+f002)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
-                (1+fb)*M_cors_minus* rhob*ub ) + ...
-                (P_cors_plus*pa + P_cors_minus*pb);
-            phi3(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
-                (1+fb)*M_cors_minus* rhob*h_tb );
-        end
-    end
-
-    aex    = ancm;
-    pex    = pncm;
-    uex    = uncm;
-    hex    = hncm;
-    rhoex  = rhoncm;
-    rho_ncmm = p(ncmm)/h(ncmm)*ga;
-    h_tex  = hex + uex^2/2;
-    h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
-    m_minus_ex = m_minus_ncm;
-    m_plus_ex  = m_plus_ncm;
-    phi1(ncm) = aex*(m_plus_ex*rho_ncmm + m_minus_ex*rhoex);
-    phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
-    phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
-end
-
-if(itest >= 2) 
-    ain    = a002;
-    pin    = p002;
-    uin    = u002;
-    hin    = h002;
-    rhoin  = rho002;
-    rho_2  = p(3)/h(3)*ga;
-    h_tin  = hin + uin^2/2;
-    h_t_2  = h(3) + u(3)^2/2;
-    m_minus_in = m_minus002;
-    m_plus_in  = m_plus002;
+if ischeme == 2
     phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
     phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
     phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
-
-    aex    = ancm;
-    pex    = pncm;
-    uex    = uncm;
-    hex    = hncm;
-    rhoex  = rhoncm;
-    rho_ncmm = p(ncmm)/h(ncmm)*ga;
-    h_tex  = hex + uex^2/2;
-    h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
-    m_minus_ex = m_minus_ncm;
-    m_plus_ex  = m_plus_ncm;
-    phi1(ncm) = aex*(m_plus_ex*rho_ncmm + m_minus_ex*rhoex);
-    phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
-    phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
+elseif ischeme == 3
+    %Ci serve nuovamente definire i valori di tutte le variabili, della
+    %cella a sinistra (indicata con in) e di quella a destra (indicata
+    %con _2)
+    p_2 = p(3);
+    u_2 = u(3);
+    a_n; %Da definire
+    M_2; %Da definire
+    p_s = P_cors_plus002 * pin + P_cors_minus002 * p_2;
+    f002 = f_limiter(M002, uin, a_n, pin, p_2, p_s, 'left');
+    fb = f_limiter(M_2, u_2, a_n, pin, p_2, p_s, 'right');
+    
+    if m_minus_in >= 0
+        phi1(n) = a_n*((1+f002)*M_cors_plus* rhoa + ...
+            (1+fb)*M_cors_minus* pw(rhoa,rhob) );
+        phi2(n) = a_n*((1+f002)*M_cors_plus* rhoa*ua + ...
+            (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
+            (P_cors_plus*pa + P_cors_minus*pb);
+        phi3(n) = a_n*((1+f002)*M_cors_plus* rhoa*h_ta+ ...
+            (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta );
+    else
+        phi1(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa) + ...
+            (1+fb)*M_cors_minus* rhob );
+        phi2(n) = a_n*((1+f002)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
+            (1+fb)*M_cors_minus* rhob*ub ) + ...
+            (P_cors_plus*pa + P_cors_minus*pb);
+        phi3(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
+            (1+fb)*M_cors_minus* rhob*h_tb );
+    end
 end
+
+aex    = ancm;
+pex    = pncm;
+uex    = uncm;
+hex    = hncm;
+rhoex  = rhoncm;
+rho_ncmm = p(ncmm)/h(ncmm)*ga;
+h_tex  = hex + uex^2/2;
+h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
+m_minus_ex = m_minus_ncm;
+m_plus_ex  = m_plus_ncm;
+phi1(ncm) = aex*(m_plus_ex*rho_ncmm + m_minus_ex*rhoex);
+phi2(ncm) = aex*(m_plus_ex*rho_ncmm*u(ncmm) + m_minus_ex*rhoex*uex) + pex;
+phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
 
 end %end of function
 
