@@ -31,6 +31,9 @@ global ischeme
         ub = u(np);
         ha = h(nm);
         hb = h(np);
+
+        rhoall = p./h*ga;
+        htall  = h + 0.5*u.^2;
         
         % Le condizioni al bordo qui sotto servono poi per i calcoli 
         % da riga 250 in poi
@@ -103,6 +106,7 @@ global ischeme
         
     
         %% Per aumentare l'ordine dell'algoritmo
+        %{
         if iord ~= 1
             ppa = log(pa);
             ppb = log(pb);
@@ -160,17 +164,92 @@ global ischeme
             ha = exp(hha);
             hb = exp(hhb);
         end
+        %}
+
+        if iord~= 1 && n>=2 && n<=ncmm-1
+            % Densità
+            drhoL = rhoall(n)-rhoall(n-1);
+            drhoR = rhoall(n+1)-rhoall(n);
+            if abs(drhoL) < 1e-14
+                phi = 0;
+            else
+                r = drhoR/drhoL;
+                phi = max(0,min(.5,r));
+            end
+            rhoa = rhoall(n) + 0.5*phi*drhoL;
+
+            drhoL = rhoall(n+1)-rhoall(n);
+            drhoR = rhoall(n+2)-rhoall(n+1);
+            if abs(drhoL) < 1e-14
+                phi = 0;
+            else
+                r = drhoR/drhoL;
+                phi = max(0,min(.5,r));
+            end
+            rhob = rhoall(n+1) - 0.5*phi*drhoL;
+
+            % Velocità
+            duL = u(n)-u(n-1);
+            duR = u(n+1)-u(n);
+
+            if abs(duL) < 1e-14
+                phi = 0;
+            else
+                r = duR/duL;
+                phi = max(0,min(.5,r));
+            end
+            ua = u(n)+0.5*phi*duL;
+
+            duL = u(n+1)-u(n);
+            duR = u(n+2)-u(n+1);
+            if abs(duL) < 1e-14
+                phi = 0;
+            else
+                r = duR/duL;
+                phi = max(0,min(.5,r));
+            end
+            ub = u(n+1)-0.5*phi*duL;
+
+            % Entalpia
+            dhL = htall(n)-htall(n-1);
+            dhR = htall(n+1)-htall(n);
+            if abs(dhL) < 1e-14
+                phi = 0;
+            else
+                r = dhR/dhL;
+                phi = max(0,min(.5,r));
+            end
+            h_ta = htall(n)+0.5*phi*dhL;
+
+            dhL = htall(n+1)-htall(n);
+            dhR = htall(n+2)-htall(n+1);
+            if abs(dhL) < 1e-14
+            phi = 0;
+            else
+                r = dhR/dhL;
+                phi = max(0,min(.5,r));
+            end
+            h_tb = htall(n+1)-0.5*phi*dhL;
+
+            ha = h_ta - 0.5*ua^2;
+            hb = h_tb - 0.5*ub^2;
+
+            pa = rhoa*ha/ga;
+            pb = rhob*hb/ga;
+        end
         
         %% Calcolo delle variabili di flusso nelle varie celle
         if n >= 2 && n <= ncmm
     
             %Calcoli dal paper usando a come suffisso al posto del pedice j
             %e il suffisso b al posto del pedice j+1
-            rhoa = pa/ha*ga;
-            rhob = pb/hb*ga;
+            if iord == 1
+                rhoa = pa/ha*ga;
+                rhob = pb/hb*ga;
         
-            h_ta = ha + ua^2/2;
-            h_tb = hb + ub^2/2;
+                h_ta = ha + ua^2/2;
+                h_tb = hb + ub^2/2;
+            end
             
             a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
             a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);

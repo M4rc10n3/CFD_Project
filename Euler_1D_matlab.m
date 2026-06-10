@@ -680,30 +680,39 @@ end
 % Carico la soluzione Osher salvata
 if(itest == 1)
     load('OsherResults0.mat')
+    load('AusmResults0.mat')
 end
 if(itest == 3)
     load('OsherResults1.mat')
+    load('AusmResults1.mat')
 end
 if(itest == 4)
     load('OsherResults2.mat')
+    load('AusmResults2.mat')
 end
 if(itest == 5)
     load('OsherResults3.mat')
+    load('AusmResults3.mat')
 end
 if(itest == 6)
     load('OsherResults4.mat')
+    load('AusmResults4.mat')
 end
 if(itest == 7)
     load('OsherResults5.mat')
+    load('AusmResults5.mat')
 end
 if(itest == 8)
     load('OsherResults6.mat')
+    load('AusmResults6.mat')
 end
 if(itest == 9)
     load('OsherResults7.mat')
+    load('AusmResults7.mat')
 end
 if(itest == 10)
     load('OsherResults8.mat')
+    load('AusmResults8.mat')
 end
 
 if(nc == 100 && (ischeme == 2 || ischeme == 3) && iord == 1)
@@ -752,6 +761,50 @@ if(nc == 100 && (ischeme == 2 || ischeme == 3) && iord == 1)
     xlabel('x')
     ylabel('T')
     legend('Exact','FDS-Osher',nome_schema)
+elseif(nc == 100 && ischeme == 2 && iord == 2)
+    % Densità
+    figure(fig_rho)
+    clf
+    plot(xth,rhoth,'o-')
+    hold on
+    plot(x,rho_ausm_plus,'o-')
+    plot(x,rho,'o-')
+    xlabel('x')
+    ylabel('\rho')
+    legend('Exact','I ordine','II ordine')
+
+    % Pressione
+    figure(fig_pre)
+    clf
+    plot(xth,pth,'o-')
+    hold on
+    plot(x,p_ausm_plus,'o-')
+    plot(x,p,'o-')
+    xlabel('x')
+    ylabel('p')
+    legend('Exact','I ordine','II ordine')
+
+    % Velocità
+    figure(fig_vel)
+    clf
+    plot(xth,uth,'o-')
+    hold on
+    plot(x,u_ausm_plus,'o-')
+    plot(x,u,'o-')
+    xlabel('x')
+    ylabel('u')
+    legend('Exact','I ordine','II ordine')
+
+    % Temperatura
+    figure(fig_tem)
+    clf
+    plot(xth,pth./rhoth,'o-')
+    hold on
+    plot(x,p_ausm_plus./rho_ausm_plus,'o-')
+    plot(x,p./rho,'o-')
+    xlabel('x')
+    ylabel('T')
+    legend('Exact','I ordine','II ordine')
 else
     schemes = bg_isch.String;
     nome_schema = schemes{bg_isch.Value};
