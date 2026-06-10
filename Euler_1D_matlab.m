@@ -610,6 +610,24 @@ txt_time2.String = tt;
     end
     
     march()
+
+    if any(p <= 0)
+    idx = find(p<=0);
+
+    disp(idx)
+
+    for j=max(1,idx(1)-2):min(nc,idx(1)+2)
+        fprintf('i=%d  rho=%g  u=%g  p=%g\n',...
+            j,rho(j),u(j),p(j));
+    end
+
+    keyboard
+    end
+
+    if any(rho <= 0)
+    fprintf('Negative density at step %d\n',k);
+    keyboard
+    end
     
     if (itest == 1)
         sum1=mean(w1);
@@ -688,49 +706,99 @@ if(itest == 10)
     load('OsherResults8.mat')
 end
 
-% Densità
-figure(fig_rho)
-clf
-plot(xth,rhoth,'o-')
-hold on
-plot(x,rho_osher,'o-')
-plot(x,rho,'o-')
-xlabel('x')
-ylabel('\rho')
-legend('Exact','FDS-Osher','AUSM+')
+if(nc == 100 && (ischeme == 2 || ischeme == 3) && iord == 1)
+    schemes = bg_isch.String;
+    nome_schema = schemes{bg_isch.Value};
+    % Densità
+    figure(fig_rho)
+    clf
+    plot(xth,rhoth,'o-')
+    hold on
+    plot(x,rho_osher,'o-')
+    plot(x,rho,'o-')
+    xlabel('x')
+    ylabel('\rho')
+    legend('Exact','FDS-Osher',nome_schema)
 
-% Pressione
-figure(fig_pre)
-clf
-plot(xth,pth,'o-')
-hold on
-plot(x,p_osher,'o-')
-plot(x,p,'o-')
-xlabel('x')
-ylabel('p')
-legend('Exact','FDS-Osher','AUSM+')
+    % Pressione
+    figure(fig_pre)
+    clf
+    plot(xth,pth,'o-')
+    hold on
+    plot(x,p_osher,'o-')
+    plot(x,p,'o-')
+    xlabel('x')
+    ylabel('p')
+    legend('Exact','FDS-Osher',nome_schema)
 
-% Velocità
-figure(fig_vel)
-clf
-plot(xth,uth,'o-')
-hold on
-plot(x,u_osher,'o-')
-plot(x,u,'o-')
-xlabel('x')
-ylabel('u')
-legend('Exact','FDS-Osher','AUSM+')
+    % Velocità
+    figure(fig_vel)
+    clf
+    plot(xth,uth,'o-')
+    hold on
+    plot(x,u_osher,'o-')
+    plot(x,u,'o-')
+    xlabel('x')
+    ylabel('u')
+    legend('Exact','FDS-Osher',nome_schema)
 
-% Temperatura
-figure(fig_tem)
-clf
-plot(xth,pth./rhoth,'o-')
-hold on
-plot(x,p_osher./rho_osher,'o-')
-plot(x,p./rho,'o-')
-xlabel('x')
-ylabel('T')
-legend('Exact','FDS-Osher','AUSM+')
+    % Temperatura
+    figure(fig_tem)
+    clf
+    plot(xth,pth./rhoth,'o-')
+    hold on
+    plot(x,p_osher./rho_osher,'o-')
+    plot(x,p./rho,'o-')
+    xlabel('x')
+    ylabel('T')
+    legend('Exact','FDS-Osher',nome_schema)
+else
+    schemes = bg_isch.String;
+    nome_schema = schemes{bg_isch.Value};
+    % Densità
+    figure(fig_rho)
+    clf
+    plot(xth,rhoth,'o-')
+    hold on
+    % plot(x,rho_osher,'o-')
+    plot(x,rho,'o-')
+    xlabel('x')
+    ylabel('\rho')
+    legend('Exact',nome_schema)
+
+    % Pressione
+    figure(fig_pre)
+    clf
+    plot(xth,pth,'o-')
+    hold on
+    % plot(x,p_osher,'o-')
+    plot(x,p,'o-')
+    xlabel('x')
+    ylabel('p')
+    legend('Exact',nome_schema)
+
+    % Velocità
+    figure(fig_vel)
+    clf
+    plot(xth,uth,'o-')
+    hold on
+    % plot(x,u_osher,'o-')
+    plot(x,u,'o-')
+    xlabel('x')
+    ylabel('u')
+    legend('Exact',nome_schema)
+
+    % Temperatura
+    figure(fig_tem)
+    clf
+    plot(xth,pth./rhoth,'o-')
+    hold on
+    % plot(x,p_osher./rho_osher,'o-')
+    plot(x,p./rho,'o-')
+    xlabel('x')
+    ylabel('T')
+    legend('Exact',nome_schema)
+end
 
 pb_cont.Enable = 'On';
 pb_stop.Enable = 'On';
