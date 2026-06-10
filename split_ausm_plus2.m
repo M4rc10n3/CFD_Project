@@ -33,27 +33,8 @@ for n=2:ncmm
     hb = h(np);
     
     % Le condizioni al bordo qui sotto servono poi per i calcoli 
-    % da riga 240 in poi; da capire quali implementare
-    %% Condizioni al bordo di D'Ambrosio
-    %{
-    if n == 2
-        p002   =  pa;
-        u002   =  ua;
-        h002   =  ha;
-        rho002 =  p002/h002*ga;
-        a002   =  sqrt(gamma*p002/rho002);
-    end
-    
-    if n == ncmm
-        pncm   =  pb;
-        uncm   =  ub;
-        hncm   =  hb;
-        rhoncm =  pncm/hncm*ga;
-        ancm   =  sqrt(gamma*pncm/rhoncm);
-    end
-    %}
-
-    %% Condizioni al bordo nostre
+    % da riga 250 in poi
+    %% Condizioni al bordo
     if n == 2
         p002   = pa; 
         u002   = ua;
@@ -232,26 +213,26 @@ for n=2:ncmm
             fa = f_limiter(Ma, ua, a_n, pa, pb, p_s, 'left');
             fb = f_limiter(Mb, ub, a_n, pa, pb, p_s, 'right');
             
+            %Controlliamo il valore di m minuscolo e decidiamo come
+            %procedere
             if m_n >= 0
+                %Usiamo la prima formula delle (42) di pagina 318 del paper
                 phi1(n) = a_n*((1+fa)*M_cors_plus* rhoa + ...
-                    (1+fb)*M_cors_minus* pw(rhoa,rhob) ) + ...
-                    (P_cors_plus*pa + P_cors_minus*pb);
+                    (1+fb)*M_cors_minus* pw(rhoa,rhob) );
                 phi2(n) = a_n*((1+fa)*M_cors_plus* rhoa*ua + ...
                     (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
                     (P_cors_plus*pa + P_cors_minus*pb);
                 phi3(n) = a_n*((1+fa)*M_cors_plus* rhoa*h_ta+ ...
-                    (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta ) + ...
-                    (P_cors_plus*pa + P_cors_minus*pb);
+                    (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta );
             else
+                %Usiamo la seconda formula delle (42) di pagina 318 del paper
                 phi1(n) = a_n*((1+fa)*M_cors_plus* pw(rhob,rhoa) + ...
-                    (1+fb)*M_cors_minus* rhob ) + ...
-                    (P_cors_plus*pa + P_cors_minus*pb);
+                    (1+fb)*M_cors_minus* rhob );
                 phi2(n) = a_n*((1+fa)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
                     (1+fb)*M_cors_minus* rhob*ub ) + ...
                     (P_cors_plus*pa + P_cors_minus*pb);
                 phi3(n) = a_n*((1+fa)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
-                    (1+fb)*M_cors_minus* rhob*h_tb ) + ...
-                    (P_cors_plus*pa + P_cors_minus*pb);
+                    (1+fb)*M_cors_minus* rhob*h_tb );
             end
         else
             fprintf(['What just happened? How did you find a scheme ' ...
@@ -263,47 +244,7 @@ end %end of the for loop
 
 %% Condizioni al bordo che differiscono a seconda del test svolto
 
-%{ 
-% Versione precedente non funzionante
-if(itest == 1)  %REFLECTING WALL B.C.
-    %%DA RIVEDERE -> la formula (64) del paper potrebbe aiutare?
-    r1dum  = p002-rho002*a002*u002;
-    r2dum  = h002-p002/rho002;
-    pin    = r1dum;
-    uin    = 0.0;
-    hin    = r2dum+pin/rho002;
-    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
-    r3dum  = pncm+rhoncm*ancm*uncm;
-    r2dum  = hncm-pncm/rhoncm;
-    pex    = r3dum;
-    uex    = 0.0;
-    hex    = r2dum+pex/rhoncm;
-    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
-end
-
-% Versione precedente non funzionante
-if(itest >= 2)  % REFLECTING WALL B.C.
-    %Per noi inutili:
-    %r1dum  = p002-rho002*a002*u002;
-    %r2dum  = h002-p002/rho002;
-
-    pin    = p002;
-    uin    = u002;
-    hin    = h002;
-    [phi1(1),phi2(1),phi3(1)] = decod_ausm(pin,uin,hin);
-
-    %Per noi inutili:
-    %r3dum  = pncm+rhoncm*ancm*uncm;
-    %r2dum  = hncm-pncm/rhoncm;
-
-    pex    = pncm;
-    uex    = uncm;
-    hex    = hncm;
-    [phi1(ncm),phi2(ncm),phi3(ncm)] = decod_ausm(pex,uex,hex);
-end
-%}
-
-if(itest == 1)  %REFLECTING WALL B.C.
+if(itest == 1) 
     ain    = a002;
     pin    = p002;
     uin    = u002;
@@ -314,9 +255,41 @@ if(itest == 1)  %REFLECTING WALL B.C.
     h_t_2  = h(3) + u(3)^2/2;
     m_minus_in = m_minus002;
     m_plus_in  = m_plus002;
-    phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
-    phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
-    phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
+
+    if ischeme == 2
+        phi1(1) = ain*(m_plus_in*rhoin + m_minus_in*rho_2);
+        phi2(1) = ain*(m_plus_in*rhoin*uin + m_minus_in*rho_2*u(3)) + pin;
+        phi3(1) = ain*(m_plus_in*rhoin*h_tin + m_minus_in*rho_2*h_t_2);
+    elseif ischeme == 3
+        %Ci serve nuovamente definire i valori di tutte le variabili, della
+        %cella a sinistra (indicata con in) e di quella a destra (indicata
+        %con _2)
+        p_2 = p(3);
+        u_2 = u(3);
+        a_n; %Da definire
+        M_2; %Da definire
+        p_s = P_cors_plus002 * pin + P_cors_minus002 * p_2;
+        f002 = f_limiter(M002, uin, a_n, pin, p_2, p_s, 'left');
+        fb = f_limiter(M_2, u_2, a_n, pin, p_2, p_s, 'right');
+        
+        if m_minus_in >= 0
+            phi1(n) = a_n*((1+f002)*M_cors_plus* rhoa + ...
+                (1+fb)*M_cors_minus* pw(rhoa,rhob) );
+            phi2(n) = a_n*((1+f002)*M_cors_plus* rhoa*ua + ...
+                (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
+                (P_cors_plus*pa + P_cors_minus*pb);
+            phi3(n) = a_n*((1+f002)*M_cors_plus* rhoa*h_ta+ ...
+                (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta );
+        else
+            phi1(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa) + ...
+                (1+fb)*M_cors_minus* rhob );
+            phi2(n) = a_n*((1+f002)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
+                (1+fb)*M_cors_minus* rhob*ub ) + ...
+                (P_cors_plus*pa + P_cors_minus*pb);
+            phi3(n) = a_n*((1+f002)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
+                (1+fb)*M_cors_minus* rhob*h_tb );
+        end
+    end
 
     aex    = ancm;
     pex    = pncm;
@@ -333,7 +306,7 @@ if(itest == 1)  %REFLECTING WALL B.C.
     phi3(ncm) = aex*(m_plus_ex*rho_ncmm*h_t_ncmm + m_minus_ex*rhoex*h_tex);
 end
 
-if(itest >= 2)  % REFLECTING WALL B.C.
+if(itest >= 2) 
     ain    = a002;
     pin    = p002;
     uin    = u002;
@@ -367,7 +340,9 @@ end %end of function
 
 %% Implementation of some functions used for AUSM+ and AUSMPW
 
-%pl computes the value of pl(x, y) from formula (40) of page 318
+%Maybe H is the total enthalpy e not the h_t specific used above?
+
+%pl computes the value of pl(x, y) - from formula (40) of page 318
 %of the AUSMPW paper
 function result = pl(x, y)
     m = min(x/y, y/x);
@@ -377,10 +352,6 @@ function result = pl(x, y)
     elseif m < 3/4 && m >= 0
         result = 0.0;
         return
-    %Consigliato da ChatGPT
-    elseif m == 1
-        result = 1;
-        return
     else
         fprintf(['Something went wrong with the computation of pl; ' ...
             'x and y are probably the same number\n'])
@@ -388,12 +359,12 @@ function result = pl(x, y)
     end
 end
 
-%w computes the value of w(x, y) from page 319
+%w computes the value of w(x, y) - from page 319
 function result = w(x, y) 
     result = 1 - (min(x/y, y/x))^3;
 end
 
-%pw computes the value of pw(x, y) from page 319
+%pw computes the value of pw(x, y) - from page 319
 function result = pw(x,y) 
     result = (1 - w(x, y)) * x + w(x,y) * y;
 end
