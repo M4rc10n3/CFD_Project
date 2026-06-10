@@ -326,7 +326,6 @@ if(itest == 1)  %REFLECTING WALL B.C.
     [phi1(ncm),phi2(ncm),phi3(ncm)] = decod(pex,uex,hex);
 end
 if(itest >= 2)  % REFLECTING WALL B.C.
-    %Anche D'Ambrosio qui non sapeva esattamente come muoversi
     r1dum  = p002-rho002*a002*u002;
     r2dum  = h002-p002/rho002;
     pin    = p002;

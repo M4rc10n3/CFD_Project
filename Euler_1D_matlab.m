@@ -621,7 +621,7 @@ txt_time2.String = tt;
             j,rho(j),u(j),p(j));
     end
 
-    keyboard
+    close keyboard
     end
 
     if any(rho <= 0)
