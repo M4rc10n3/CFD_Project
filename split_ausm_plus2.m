@@ -21,7 +21,10 @@ global ischeme
     % dell'ultima cella
     
     ncmm = ncm-1;
-    for n=2:ncmm
+    %Togliere questo commento e commentare il for dopo per tornare
+    %all'originale
+    %for n=2:ncmm
+    for n=1:ncm
         nm = n;
         np = nm+1;
         
@@ -51,7 +54,7 @@ global ischeme
             %Entalpia specifica totale di sinistra
             h_t002 = h002 + u002^2/2;
     
-            %Quantità dell'AUSM+ e dell'AUSMPW
+            %Quantità specifiche dell'AUSM+ e dell'AUSMPW
             a_star002 = sqrt(2*(gamma-1)/(gamma+1)*h_t002);
             a002 = a_star002^2/max(a_star002,abs(u002)); 
     
@@ -67,20 +70,15 @@ global ischeme
 
             m_plus002 = 0.5*(m002+abs(m002));
             m_minus002 = 0.5*(m002-abs(m002));
-
-            %Calcolare a parte questo valore crea grandi problemi nelle
-            %funzioni perché passo non p002 non la pressione nella cella 2, 
-            % ma questa p002 aggiornata: l'ho sostituito nelle formula di 
-            % phi2 in cui viene usato
-            %p002 = P_cors_plus002*p002 + P_cors_minus002*p002;
         end
         
         if n == ncmm
             pncm   = pb;
             uncm   = ub;
             hncm   = hb;
+
+            %Idem come sopra, ma al posto del suffisso 002 c'è scritto ncm
             rhoncm = pncm/hncm*ga;
-            % Nota: sx = dx, cioè pa = pb = pncm, etc.
             h_tncm = hncm + uncm^2/2;
     
             a_star_ncm = sqrt(2*(gamma-1)/(gamma+1)*h_tncm);
@@ -98,10 +96,6 @@ global ischeme
 
             m_plus_ncm = 0.5*(mncm+abs(mncm));
             m_minus_ncm = 0.5*(mncm-abs(mncm));
-
-            %Calcolare a parte questo valore crea grandi problemi nelle
-            %funzioni: l'ho sostituito nelle formula di phi2 in cui viene usato
-            %pncm = P_cors_plus_ncm*pncm + P_cors_minus_ncm*pncm;
         end
         
     
@@ -237,7 +231,78 @@ global ischeme
             pa = rhoa*ha/ga;
             pb = rhob*hb/ga;
         end
+
+        if n >= 1 && n <= ncm
+    
+            %Calcoli dal paper usando a come suffisso al posto del pedice j
+            %e il suffisso b al posto del pedice j+1
+            if iord == 1
+                rhoa = pa/ha*ga;
+                rhob = pb/hb*ga;
         
+                h_ta = ha + ua^2/2;
+                h_tb = hb + ub^2/2;
+            end
+            
+            a_star_a = sqrt(2*(gamma-1)/(gamma+1)*h_ta);
+            a_star_b = sqrt(2*(gamma-1)/(gamma+1)*h_tb);
+    
+            a_tilde_a = a_star_a^2/max(a_star_a,abs(ua));
+            a_tilde_b = a_star_b^2/max(a_star_b,abs(ub));
+    
+            %Dopo prove empiriche, abbiamo ottenuto che questi test vanno
+            %svolti usando una formula più semplice per la velocità del
+            %suono all'interfaccia
+            if itest == 1 || itest == 3
+                a_n = 0.5*(a_star_a+a_star_b);
+            else
+                a_n = min(a_tilde_a,a_tilde_b);
+            end
+    
+            Ma = ua/a_n;
+            Mb = ub/a_n;
+            
+            M_cors_plus = M_beta(Ma, 1/8, 'plus');
+            M_cors_minus = M_beta(Mb, 1/8, 'minus');
+    
+            P_cors_plus = P_alpha(Ma, 3/16, 'plus');
+            P_cors_minus = P_alpha(Mb, 3/16, 'minus');
+    
+            m_n = M_cors_plus + M_cors_minus;
+
+            m_n_plus = 0.5*(m_n+abs(m_n));
+            m_n_minus = 0.5*(m_n-abs(m_n));
+        
+            if ischeme == 2 %AUSM+
+
+                % Formula A3 del paper scomposta nelle 3 componenti:
+                phi1(n) = a_n*(m_n_plus*rhoa + m_n_minus*rhob); 
+                phi2(n) = a_n*(m_n_plus*rhoa*ua + m_n_minus*rhob*ub) + ...
+                    P_cors_plus*pa + P_cors_minus*pb;
+                phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
+
+            elseif ischeme == 3 %AUSMPW
+
+                % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW;
+                % la formula a pagina 318 per p_s ha probabilmente un 
+                % errore nell'ultima P_R
+                p_s = P_cors_plus * pa + P_cors_minus * pb;
+    
+                fa = f_limiter(Ma, ua, a_n, pa, pb, p_s, 'left');
+                fb = f_limiter(Mb, ub, a_n, pa, pb, p_s, 'right');
+                
+                [phi1(n), phi2(n), phi3(n)] = AUSMPW(m_n, fa, fb, ...
+                    M_cors_plus, M_cors_minus, P_cors_plus, P_cors_minus, ...
+                    a_n, ua, ub, rhoa, rhob, pa, pb, h_ta, h_tb);
+            else
+                fprintf(['What just happened? How did you find a scheme' ...
+                    ' that we have not implemented?'])
+            end
+        end
+    end
+        % Togliere questa parentesi graffa e quella a riga 501 per tonare
+        % al codice originale
+        %{
         %% Calcolo delle variabili di flusso nelle varie celle
         if n >= 2 && n <= ncmm
     
@@ -279,10 +344,6 @@ global ischeme
 
             m_n_plus = 0.5*(m_n+abs(m_n));
             m_n_minus = 0.5*(m_n-abs(m_n));
-
-            %Calcolare a parte questo valore crea grandi problemi nelle
-            %funzioni: l'ho sostituito nelle formula di phi2 in cui viene usato
-            %p_n = P_cors_plus*pa + P_cors_minus*pb;
         
             if ischeme == 2 %AUSM+
 
@@ -293,9 +354,10 @@ global ischeme
                 phi3(n) = a_n*(m_n_plus*rhoa*h_ta + m_n_minus*rhob*h_tb);
 
             elseif ischeme == 3 %AUSMPW
-                % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW, la
-                % formula a pagina 318 per p_s ha probabilmente un errore nell'ultima
-                % P_R
+
+                % P_cors_plus e P_cors_minus sono le P maiuscole dell'AUSMPW;
+                % la formula a pagina 318 per p_s ha probabilmente un 
+                % errore nell'ultima P_R
                 p_s = P_cors_plus * pa + P_cors_minus * pb;
     
                 fa = f_limiter(Ma, ua, a_n, pa, pb, p_s, 'left');
@@ -305,8 +367,8 @@ global ischeme
                     M_cors_plus, M_cors_minus, P_cors_plus, P_cors_minus, ...
                     a_n, ua, ub, rhoa, rhob, pa, pb, h_ta, h_tb);
             else
-                fprintf(['What just happened? How did you find a scheme ' ...
-                    'that we have not implemented?'])
+                fprintf(['What just happened? How did you find a scheme' ...
+                    ' that we have not implemented?'])
             end
         %{
         elseif n == 2
@@ -380,31 +442,38 @@ global ischeme
 
     %% Calcolo delle condizioni al bordo fuori dal ciclo for
     
+    %Ricordiamo che consideriamo pressione, velocità ed entalpia identiche a
+    %sinistra e a destra; la densità e l'entalpia specifica di destra sono, 
+    %invece, da calcolare (quelle di sinistra sono calcolate sopra)
     rho_2  = p(3)/h(3)*ga;
     h_t_2  = h(3) + u(3)^2/2;
     
     if ischeme == 2 %AUSM+
     
         phi1(1) = a002*(m_plus002*rho002 + m_minus002*rho_2);
+        %Delle variabili cambiano
         phi2(1) = a002*(m_plus002*rho002*u002 + m_minus002*rho_2*u(3)) + ...
-            P_cors_plus002*p002 + P_cors_minus002*p002;
+            P_cors_plus002*p002 + P_cors_minus002*p(3);
+        %phi2(1) = a002*(m_plus002*rho002*u002 + m_minus002*rho_2*u002) + ...
+        %    P_cors_plus002*p002 + P_cors_minus002*p002;
         phi3(1) = a002*(m_plus002*rho002*h_t002 + m_minus002*rho_2*h_t_2);
     
     elseif ischeme == 3 %AUSMPW
     
         % Ci serve calcolare solo i valori delle variabili non usate nell'AUSM+ 
-        p_s = P_cors_plus002 * p002 + P_cors_minus002 * p002;
+        p_s = P_cors_plus002 * p002 + P_cors_minus002 * p(3);
     
-        f002 = f_limiter(M002, u002, a002, p002, p002, p_s, 'left');
-        f_2 = f_limiter(M002, u002, a002, p002, p002, p_s, 'right');
+        f002 = f_limiter(M002, u002, a002, p002, p(3), p_s, 'left');
+        f_2 = f_limiter(M002, u(3), a002, p002, p(3), p_s, 'right');
         
         [phi1(1), phi2(1), phi3(1)] = AUSMPW(m002, f002, f_2, ...
             M_cors_plus002, M_cors_minus002, P_cors_plus002, ...
-            P_cors_minus002, a002, u002, u002, rho002, rho_2, p002, p002, ...
+            P_cors_minus002, a002, u002, u(3), rho002, rho_2, p002, p(3), ...
             h_t002, h_t_2);
     
     end
     
+    % Idem come sopra
     rho_ncmm = p(ncmm)/h(ncmm)*ga;
     h_t_ncmm = h(ncmm) + u(ncmm)^2/2;
     
@@ -412,25 +481,26 @@ global ischeme
     
         phi1(ncm) = ancm*(m_plus_ncm*rho_ncmm + m_minus_ncm*rhoncm);
         %Perché qui la velocità è stata cambiata??
-        %phi2(ncm) = ancm*(m_plus_ncm*rho_ncmm*u(ncmm) + m_minus_ncm*rhoncm*uncm) + ...
-        %    P_cors_plus_ncm*pncm + P_cors_minus_ncm*pncm;
-        phi2(ncm) = ancm*(m_plus_ncm*rho_ncmm*uncm + m_minus_ncm*rhoncm*uncm) + ...
-           P_cors_plus_ncm*pncm + P_cors_minus_ncm*pncm;
+        phi2(ncm) = ancm*(m_plus_ncm*rho_ncmm*u(ncmm) + m_minus_ncm*rhoncm*uncm) + ...
+            P_cors_plus_ncm*p(ncmm) + P_cors_minus_ncm*pncm;
+        %phi2(ncm) = ancm*(m_plus_ncm*rho_ncmm*uncm + m_minus_ncm*rhoncm*uncm) + ...
+        %   P_cors_plus_ncm*pncm + P_cors_minus_ncm*pncm;
         phi3(ncm) = ancm*(m_plus_ncm*rho_ncmm*h_t_ncmm + m_minus_ncm*rhoncm*h_tncm);
     
     elseif ischeme == 3 %AUSMPW
         % Ci serve calcolare solo i valori delle variabili non usate nell'AUSM+ 
-        p_s = P_cors_plus_ncm * pncm + P_cors_minus_ncm * pncm;
+        p_s = P_cors_plus_ncm * p(ncmm) + P_cors_minus_ncm * pncm;
     
-        fncm = f_limiter(M002, uncm, ancm, pncm, pncm, p_s, 'left');
-        fncmm = f_limiter(M002, uncm, ancm, pncm, pncm, p_s, 'right');
+        fncmm = f_limiter(M002, u(ncmm), ancm, p(ncmm), pncm, p_s, 'left');
+        fncm = f_limiter(M002, uncm, ancm, p(ncmm), pncm, p_s, 'right');
         
-        [phi1(ncm), phi2(ncm), phi3(ncm)] = AUSMPW(mncm, fncm, fncmm, ...
+        [phi1(ncm), phi2(ncm), phi3(ncm)] = AUSMPW(mncm, fncmm, fncm, ...
             M_cors_plus_ncm, M_cors_minus_ncm, P_cors_plus_ncm, ...
-            P_cors_minus_ncm, ancm, uncm, uncm, rhoncm, rho_ncmm, pncm, pncm, ...
-            h_tncm, h_t_ncmm);
+            P_cors_minus_ncm, ancm, u(ncmm), uncm, rho_ncmm, rhoncm, p(ncmm), pncm, ...
+            h_t_ncmm, h_tncm);
     
     end
+    %}
 
 end %end of function
 
@@ -594,6 +664,7 @@ end
 % - h_ta, h_tb = specific total enthalpy values of the left and right cell.
 function [phi1, phi2, phi3] = AUSMPW(m, fa, fb, M_cors_plus, M_cors_minus, ...
     P_cors_plus, P_cors_minus, a_half, ua, ub, rhoa, rhob, pa, pb, h_ta, h_tb)
+
     %Check the value of m and proceed accordingly
     if m >= 0
         %First formula of the (42) of page 318 of the AUSMPW
@@ -620,6 +691,7 @@ end
 
 %% Thinking or things to do
 
-%Maybe H is the total enthalpy e not the total specific h_t used above?
+% Usare valori di pressione, velocità ed entalpia delle due celle
+% consecutive ai bordi o considerare che siano comunque identiche
 
 %}
