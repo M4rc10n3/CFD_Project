@@ -438,6 +438,9 @@ end %end of function
 
 %pl computes the value of pl(x, y) - from formula (40) of page 318
 %of the AUSMPW paper
+% Lista di input:
+% - x = pressione di sinistra/destra;
+% - y = pressione di destra/sinistra.
 function result = pl(x, y)
     m = min(x/y, y/x);
     %Scegliamo di mettere questo risultato anche per m = 1, perché in tal
@@ -458,7 +461,7 @@ end
 %w computes the value of w(x, y) - from page 319 of the AUSMPW paper
 % Lista di input:
 % - x = pressione di sinistra;
-% - y = pressione di destra
+% - y = pressione di destra.
 function result = w(x, y) 
     result = 1 - (min(x/y, y/x))^3;
     return
@@ -467,18 +470,24 @@ end
 %pw computes the value of pw(x, y) - from page 319 of the AUSMPW paper
 % Lista di input:
 % - x = pressione di sinistra;
-% - y = pressione di destra
+% - y = pressione di destra.
 function result = pw(x,y)
     w_pw = w(x, y);
     result = (1 - w_pw) * x + w_pw * y;
     return
 end
 
-%M_beta calculates the value of M_beta depending on which beta you
+%M_beta computes the value of M_beta depending on which beta you
 %give it as an input and which sign you wish your M_beta to have
+% Lista di input:
+% - M = Mach_number of the cell;
+% - beta = value of the coefficient beta (optimal value = 1/8);
+% - sgn = sign on the apex of the M_beta function (+ for a left M_beta and
+% for a right one).
 function result = M_beta(M, beta, sgn)
     %First, we need to decide the sign of M_beta
-    if strcmpi(sgn, 'plus') %strcmpi gives true (or 1) if the two strings 
+    if strcmpi(sgn, 'plus') 
+        %strcmpi gives true (or 1) if the two strings 
         % are the same (it is case insensitive), otherwise it gives 
         % false (or 0) as a result
 
@@ -507,51 +516,59 @@ function result = M_beta(M, beta, sgn)
 end
 
 %f_limiter computes the value of the function f "similar to a limiter"
-%introduced with the AUSMPW algorithm - formula (39) of page 318
-%As inputs, it needs:
-% - the Mach number and the velocity of the correct cell (left or right);
+%introduced by the AUSMPW algorithm - formula (39) of page 318
+% List of inputs:
+% - the Mach number of the correct cell (left or right);
+% - the velocity of the correct cell (left or right);
 % - the value of the speed of sound on the interface;
-% - the value of pressure on the two consecutives cell;
-% - the values of p_s;
+% - the pressure on the two consecutives cell;
+% - the value of the special value p_s;
 % - whether you want to calculate the 'left' or the 'right' one.
 function result = f_limiter(M, u, a_n, p_l, p_r, p_s, position)
-    if abs(M) < 1
+    if abs(M) <= 1
         if strcmpi(position, 'left')
-            result = (p_l/p_s - 1)*pl(p_l,p_r)*abs(M_beta(M,0,'plus')* ...
-                min(1, (abs(u)/a_n)^(0.25)));
+            result = (p_l/p_s - 1) * pl(p_l,p_r) * abs(M_beta(M,0,'plus')) * ...
+                min(1, (abs(u)/a_n)^(0.25));
             return
         elseif strcmpi(position, 'right')
-            result = (p_r/p_s - 1)*pl(p_r,p_l)*abs(M_beta(M,0,'minus')* ...
-                min(1, (abs(u)/a_n)^(0.25)));
+            result = (p_r/p_s - 1) * pl(p_r,p_l) * abs(M_beta(M,0,'minus')) * ...
+                min(1, (abs(u)/a_n)^(0.25));
             return
         else
             fprintf(['Something went wrong: have you spelt "left" and "right" ' ...
             'correctly in every usage of f_limiter? \n'] )
         end
-    else
+    else % abs(M) > 1
         result = 0.0;
     end
 end
 
+%P_alpha computes the value of P_alpha depending on which alpha you
+%give it as an input and which sign you wish your P_alpha to have
+% Lista di input:
+% - M = Mach_number of the cell;
+% - alpha = value of the coefficient alpha (optimal value = 3/16);
+% - sgn = sign on the apex of the P_alpha function (+ for a left P_alpha 
+% and for a right one).
 function result = P_alpha(M, alpha, sgn)
     %First, we need to decide the sign of P_alpha
     if strcmpi(sgn, 'plus')
 
         if abs(M) <= 1
-            result = 0.25*(M+1)^2*(2-M) + alpha*M*(M^2-1)^2;
+            result = 0.25 * (M+1)^2 * (2-M) + alpha * M * (M^2-1)^2;
             return
         else
-            result = 0.5*(1+sign(M));
+            result = 0.5 * (1+sign(M));
             return
         end
 
     elseif strcmpi(sgn, 'minus')
 
         if abs(M) <= 1
-            result = 0.25*(M-1)^2*(2+M) - alpha*M*(M^2-1)^2;
+            result = 0.25 * (M-1)^2 * (2+M) - alpha * M * (M^2-1)^2;
             return
         else
-            result = 0.5*(1-sign(M));
+            result = 0.5 * (1-sign(M));
             return
         end
         
