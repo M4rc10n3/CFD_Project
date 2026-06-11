@@ -434,13 +434,15 @@ global ischeme
 
 end %end of function
 
-
 %% Implementation of some functions used for AUSM+ and AUSMPW
 
 %pl computes the value of pl(x, y) - from formula (40) of page 318
 %of the AUSMPW paper
 function result = pl(x, y)
     m = min(x/y, y/x);
+    %Scegliamo di mettere questo risultato anche per m = 1, perché in tal
+    %caso le pressioni sono identiche, il gradiente di pressione è nullo e
+    %dunque pl deve assumere valore massimo (ovvero 1).
     if m >= 3/4 && m <= 1
         result = 4 * m - 3;
         return
@@ -450,18 +452,26 @@ function result = pl(x, y)
     else
         fprintf(['Something went wrong with the computation of pl; ' ...
             'x and y are probably the same number\n'])
-        result = -1;
     end
 end
 
-%w computes the value of w(x, y) - from page 319
+%w computes the value of w(x, y) - from page 319 of the AUSMPW paper
+% Lista di input:
+% - x = pressione di sinistra;
+% - y = pressione di destra
 function result = w(x, y) 
     result = 1 - (min(x/y, y/x))^3;
+    return
 end
 
-%pw computes the value of pw(x, y) - from page 319
-function result = pw(x,y) 
-    result = (1 - w(x, y)) * x + w(x,y) * y;
+%pw computes the value of pw(x, y) - from page 319 of the AUSMPW paper
+% Lista di input:
+% - x = pressione di sinistra;
+% - y = pressione di destra
+function result = pw(x,y)
+    w_pw = w(x, y);
+    result = (1 - w_pw) * x + w_pw * y;
+    return
 end
 
 %M_beta calculates the value of M_beta depending on which beta you
