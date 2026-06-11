@@ -458,7 +458,8 @@ function result = pl(x, y)
     end
 end
 
-%w computes the value of w(x, y) - from page 319 of the AUSMPW paper
+%w computes the value of w(x, y), the pressure-based weight - from page 319
+%of the AUSMPW paper
 % Lista di input:
 % - x = pressione di sinistra;
 % - y = pressione di destra.
@@ -480,7 +481,7 @@ end
 %M_beta computes the value of M_beta depending on which beta you
 %give it as an input and which sign you wish your M_beta to have
 % Lista di input:
-% - M = Mach_number of the cell;
+% - M = Mach number of the cell;
 % - beta = value of the coefficient beta (optimal value = 1/8);
 % - sgn = sign on the apex of the M_beta function (+ for a left M_beta and
 % for a right one).
@@ -518,12 +519,12 @@ end
 %f_limiter computes the value of the function f "similar to a limiter"
 %introduced by the AUSMPW algorithm - formula (39) of page 318
 % List of inputs:
-% - the Mach number of the correct cell (left or right);
-% - the velocity of the correct cell (left or right);
-% - the value of the speed of sound on the interface;
-% - the pressure on the two consecutives cell;
-% - the value of the special value p_s;
-% - whether you want to calculate the 'left' or the 'right' one.
+% - M = Mach number of the correct cell (left or right);
+% - u = velocity of the correct cell (left or right);
+% - a_n =  value of the speed of sound on the interface;
+% - p_l, p_r =  pressure on the two consecutives cell;
+% - p_s = special value computed as P_cors_plus*p_l+P_cors_minus*p_r;
+% - position = whether you want to calculate the 'left' or the 'right' one.
 function result = f_limiter(M, u, a_n, p_l, p_r, p_s, position)
     if abs(M) <= 1
         if strcmpi(position, 'left')
@@ -580,29 +581,39 @@ end
 
 %AUSMPW is the function that computes the 3 flow variables using the AUSMPW
 %method
+%List of inputs:
+% - m = M_cors_plus+M_cors_minus (we compute it in the code, so we give as
+% an input to save in memory and number of operations);
+% - fa, fb = f_limiter for the left and right cell;
+% - M_cors_plus, M_cors_minus = M_beta(Ma/Mb, 1/8, 'plus'/'minus')
+% - P_cors_plus, P_cors_minus = P_alpha(Ma/Mb, 3/16, 'plus'/'minus')
+% - a_half = speed of sound at the interface of the two consecutive cells;
+% - ua, ub = velocity values of the left and right cell;
+% - rhoa, rhob = density values of the left and right cell;
+% - pa, pb = pressure values of the left and right cell;
+% - h_ta, h_tb = specific total enthalpy values of the left and right cell.
 function [phi1, phi2, phi3] = AUSMPW(m, fa, fb, M_cors_plus, M_cors_minus, ...
     P_cors_plus, P_cors_minus, a_half, ua, ub, rhoa, rhob, pa, pb, h_ta, h_tb)
-    %Controlliamo il valore di m minuscolo e decidiamo come
-    %procedere
+    %Check the value of m and proceed accordingly
     if m >= 0
-        %Usiamo la prima formula delle (42) di pagina 318 del paper
-        phi1 = a_half*((1+fa)*M_cors_plus* rhoa + ...
-            (1+fb)*M_cors_minus* pw(rhoa,rhob) );
-        phi2 = a_half*((1+fa)*M_cors_plus* rhoa*ua + ...
-            (1+fb)*M_cors_minus* pw(rhoa*ua,rhob*ub) ) + ...
-            (P_cors_plus*pa + P_cors_minus*pb);
-        phi3 = a_half*((1+fa)*M_cors_plus* rhoa*h_ta+ ...
-            (1+fb)*M_cors_minus* pw(rhoa,rhob)*h_ta );
+        %First formula of the (42) of page 318 of the AUSMPW
+        phi1 = a_half * ((1 + fa) * M_cors_plus * rhoa + ...
+            (1 + fb) * M_cors_minus * pw(rhoa,rhob));
+        phi2 = a_half * ((1 + fa) * M_cors_plus * rhoa*ua + ...
+            (1 + fb) *M_cors_minus * pw(rhoa*ua, rhob*ub)) + ...
+            (P_cors_plus * pa + P_cors_minus * pb);
+        phi3 = a_half * ((1 + fa) * M_cors_plus * rhoa*h_ta+ ...
+            (1 + fb) * M_cors_minus * pw(rhoa,rhob)*h_ta );
         return
-    else
-        %Usiamo la seconda formula delle (42) di pagina 318 del paper
-        phi1 = a_half*((1+fa)*M_cors_plus* pw(rhob,rhoa) + ...
-            (1+fb)*M_cors_minus* rhob );
-        phi2 = a_half*((1+fa)*M_cors_plus* pw(rhob*ub,rhoa*ua) + ...
-            (1+fb)*M_cors_minus* rhob*ub ) + ...
-            (P_cors_plus*pa + P_cors_minus*pb);
-        phi3 = a_half*((1+fa)*M_cors_plus* pw(rhob,rhoa)*h_tb + ...
-            (1+fb)*M_cors_minus* rhob*h_tb );
+    else % m < 0
+        %Second formula of the (42) of page 318 of the AUSMPW
+        phi1 = a_half * ((1 + fa) * M_cors_plus * pw(rhob,rhoa) + ...
+            (1 + fb) * M_cors_minus * rhob );
+        phi2 = a_half * ((1 + fa) * M_cors_plus * pw(rhob*ub,rhoa*ua) + ...
+            (1 + fb) * M_cors_minus * rhob*ub ) + ...
+            (P_cors_plus * pa + P_cors_minus * pb);
+        phi3 = a_half * ((1+fa) * M_cors_plus * pw(rhob,rhoa)*h_tb + ...
+            (1 + fb) * M_cors_minus * rhob*h_tb );
         return
     end
 end
