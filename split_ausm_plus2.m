@@ -362,6 +362,9 @@ global ischeme
     
                 fa = f_limiter(Ma, ua, a_n, pa, pb, p_s, 'left');
                 fb = f_limiter(Mb, ub, a_n, pa, pb, p_s, 'right');
+
+                % fa = 0;
+                % fb = 0;
                 
                 [phi1(n), phi2(n), phi3(n)] = AUSMPW(m_n, fa, fb, ...
                     M_cors_plus, M_cors_minus, P_cors_plus, P_cors_minus, ...
@@ -491,8 +494,8 @@ global ischeme
         % Ci serve calcolare solo i valori delle variabili non usate nell'AUSM+ 
         p_s = P_cors_plus_ncm * p(ncmm) + P_cors_minus_ncm * pncm;
     
-        fncmm = f_limiter(M002, u(ncmm), ancm, p(ncmm), pncm, p_s, 'left');
-        fncm = f_limiter(M002, uncm, ancm, p(ncmm), pncm, p_s, 'right');
+        fncmm = f_limiter(Mncm, u(ncmm), ancm, p(ncmm), pncm, p_s, 'left');
+        fncm = f_limiter(Mncm, uncm, ancm, p(ncmm), pncm, p_s, 'right');
         
         [phi1(ncm), phi2(ncm), phi3(ncm)] = AUSMPW(mncm, fncmm, fncm, ...
             M_cors_plus_ncm, M_cors_minus_ncm, P_cors_plus_ncm, ...
@@ -665,32 +668,38 @@ function [phi1, phi2, phi3] = AUSMPW(m, fa, fb, M_cors_plus, M_cors_minus, ...
     P_cors_plus, P_cors_minus, a_half, ua, ub, rhoa, rhob, pa, pb, h_ta, h_tb)
 
     %Check the value of m and proceed accordingly
-    if m >= 0
+    if m >= 1e-10
         %First formula of the (42) of page 318 of the AUSMPW
         phi1 = a_half * ((1 + fa) * M_cors_plus * rhoa + ...
             (1 + fb) * M_cors_minus * pw(rhoa,rhob));
         phi2 = a_half * ((1 + fa) * M_cors_plus * rhoa*ua + ...
-            (1 + fb) *M_cors_minus * pw(rhoa*ua, rhob*ub)) + ...
+            (1 + fb) * M_cors_minus * pw(rhoa, rhob)*ua) + ...
             (P_cors_plus * pa + P_cors_minus * pb);
         phi3 = a_half * ((1 + fa) * M_cors_plus * rhoa*h_ta+ ...
-            (1 + fb) * M_cors_minus * pw(rhoa,rhob)*h_ta );
+            (1 + fb) * M_cors_minus * pw(rhoa,rhob)*h_tb );
         return
-    else % m < 0
+    elseif  m < -1e-10
         %Second formula of the (42) of page 318 of the AUSMPW
         phi1 = a_half * ((1 + fa) * M_cors_plus * pw(rhob,rhoa) + ...
             (1 + fb) * M_cors_minus * rhob );
-        phi2 = a_half * ((1 + fa) * M_cors_plus * pw(rhob*ub,rhoa*ua) + ...
+        phi2 = a_half * ((1 + fa) * M_cors_plus * pw(rhob,rhoa)*ub + ...
             (1 + fb) * M_cors_minus * rhob*ub ) + ...
             (P_cors_plus * pa + P_cors_minus * pb);
-        phi3 = a_half * ((1+fa) * M_cors_plus * pw(rhob,rhoa)*h_tb + ...
+        phi3 = a_half * ((1+fa) * M_cors_plus * pw(rhob,rhoa)*h_ta + ...
             (1 + fb) * M_cors_minus * rhob*h_tb );
         return
+    else
+        rho_pw = 0.5*(pw(rhoa,rhob) + pw(rhob,rhoa));
+    
+        phi1 = a_half * ((1 + fa) * M_cors_plus * rho_pw + ...
+            (1 + fb) * M_cors_minus * rho_pw );
+        phi2 = a_half * ((1 + fa) * M_cors_plus * rho_pw*ub + ...
+            (1 + fb) * M_cors_minus * rho_pw*ub ) + ...
+            (P_cors_plus * pa + P_cors_minus * pb);
+        phi3 = a_half * ((1+fa) * M_cors_plus * rho_pw*h_tb + ...
+            (1 + fb) * M_cors_minus * rho_pw*h_tb );
+        return
+
     end
 end
 
-%% Thinking or things to do
-
-% Usare valori di pressione, velocità ed entalpia delle due celle
-% consecutive ai bordi o considerare che siano comunque identiche
-
-%}
