@@ -23,8 +23,8 @@ global ischeme
     ncmm = ncm-1;
     %Togliere questo commento e commentare il for dopo per tornare
     %all'originale
-    %for n=2:ncmm
-    for n=1:ncm
+    for n=2:ncmm
+    %for n=1:ncm
         nm = n;
         np = nm+1;
         
@@ -299,10 +299,10 @@ global ischeme
                     ' that we have not implemented?'])
             end
         end
-    end
-        % Togliere questa parentesi graffa e quella a riga 501 per tonare
+
+        % Togliere questa parentesi graffa e quella a riga 501 per tornare
         % al codice originale
-        %{
+        
         %% Calcolo delle variabili di flusso nelle varie celle
         if n >= 2 && n <= ncmm
     
@@ -500,8 +500,7 @@ global ischeme
             h_t_ncmm, h_tncm);
     
     end
-    %}
-
+    
 end %end of function
 
 %% Implementation of some functions used for AUSM+ and AUSMPW
